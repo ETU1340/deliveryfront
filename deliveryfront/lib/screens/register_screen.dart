@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../service/api_urls.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/custom_text_field_register.dart';
+import '../widgets/custom_button.dart';
+import '../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -27,38 +26,35 @@ class _RegisterPageState extends State<RegisterPage> {
       final phone = _phoneController.text;
       final companyName = _companyNameController.text;
 
-      final response = await http.post(
-        Uri.parse(ApiUrls.register), // Remplacez par l'URL de votre backend
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'email': email,
-          'name': name,
-          'address': address,
-          'phone': phone,
-          'companyName': companyName,
-          'role': 'Manager', // Assurez-vous que le rôle est défini ici
-        }),
+      final result = await AuthService.register(
+        email: email,
+        password: password,
+        name: name,
+        address: address,
+        phone: phone,
+        companyName: companyName,
       );
 
-      if (response.statusCode != 200) {
-        final data = jsonDecode(response.body);
-        final token = data['token']; // Assurez-vous que votre API renvoie un token
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
-        Navigator.pushReplacementNamed(context, '/home'); // Redirige vers la page d'accueil
-
-        // Enregistrez le token ou naviguez vers la page de connexion
+      if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Registration successful!')),
         );
-        Navigator.pop(context); // Retourne à la page de connexion
+
+        final success = await AuthService.login(
+            email,
+            password,
+        );
+        if (success) {
+          Navigator.pushNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed!')),
+        );
+        }
+
       } else {
-        // Afficher le message d'erreur
-        final data = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'])),
+          SnackBar(content: Text(result['message'])),
         );
       }
     }
@@ -87,15 +83,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Email
-                      TextFormField(
+                      CustomTextFieldRegister(
                         controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email, color: Colors.blue),
-                        ),
+                        label: 'Email',
                         keyboardType: TextInputType.emailAddress,
+                        icon: Icons.email,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
@@ -107,14 +99,23 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       SizedBox(height: 20),
-                      // Name
-                      TextFormField(
+                      CustomTextFieldRegister(
+                        controller: _passwordController,
+                        label: 'Password',
+                        obscureText: true,
+                        icon: Icons.lock,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20),
+                      CustomTextFieldRegister(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person, color: Colors.blue),
-                        ),
+                        label: 'Name',
+                        icon: Icons.person,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your name';
@@ -123,14 +124,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       SizedBox(height: 20),
-                      // Address
-                      TextFormField(
+                      CustomTextFieldRegister(
                         controller: _addressController,
-                        decoration: InputDecoration(
-                          labelText: 'Address',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.home, color: Colors.blue),
-                        ),
+                        label: 'Address',
+                        icon: Icons.home,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your address';
@@ -139,15 +136,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       SizedBox(height: 20),
-                      // Phone
-                      TextFormField(
+                      CustomTextFieldRegister(
                         controller: _phoneController,
-                        decoration: InputDecoration(
-                          labelText: 'Phone',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.phone, color: Colors.blue),
-                        ),
+                        label: 'Phone',
                         keyboardType: TextInputType.phone,
+                        icon: Icons.phone,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your phone number';
@@ -156,14 +149,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       SizedBox(height: 20),
-                      // Company Name
-                      TextFormField(
+                      CustomTextFieldRegister(
                         controller: _companyNameController,
-                        decoration: InputDecoration(
-                          labelText: 'Company Name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.business, color: Colors.blue),
-                        ),
+                        label: 'Company Name',
+                        icon: Icons.business,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your company name';
@@ -172,15 +161,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       SizedBox(height: 20),
-                      // Register Button
-                      ElevatedButton(
+                
+                      CustomButton(
+                        text: "S'inscrire",
                         onPressed: _register,
-                        child: Text('Register'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                          textStyle: TextStyle(fontSize: 16),
-                        ),
                       ),
                     ],
                   ),

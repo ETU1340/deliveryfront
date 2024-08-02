@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../service/api_urls.dart';
+import '../utils/api_urls.dart';
 
 class HomePage extends StatefulWidget {
   @override

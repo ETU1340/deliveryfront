@@ -1,9 +1,9 @@
 class ApiUrls {
-  static const String baseUrl = 'localhost:7000/api/';
+  static const String baseUrl = 'http://localhost:7000/api';
 
   // Auth URLs
-  static const String register = '$baseUrl/register';
-  static const String login = '$baseUrl/login';
+  static const String register = '$baseUrl/auth/register';
+  static const String login = '$baseUrl/auth/login';
 
   // Manager URLs
   static const String getManagers = '$baseUrl/managers';
