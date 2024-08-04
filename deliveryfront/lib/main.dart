@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
 import 'config/theme.dart';
-
+import 'package:logging/logging.dart';
+import 'dart:async';
 void main() {
-  runApp(MyApp());
+  // Configurer le logger
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+    if (record.error != null) {
+      print('Error: ${record.error}');
+      print('Stack trace: ${record.stackTrace}');
+    }
+  });
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    Logger('FlutterError').severe(details.exceptionAsString(), details.exception, details.stack);
+  };
+
+  runZonedGuarded(() {
+    runApp(MyApp());
+  }, (error, stackTrace) {
+    Logger('runZonedGuarded').severe('Uncaught error', error, stackTrace);
+  });
 }
 
 class MyApp extends StatelessWidget {

@@ -1,83 +1,120 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import './register_screen.dart';
 import '../services/auth_service.dart';
-import '../services/livreur_service.dart';
-import '../models/livreur.dart';
+import '../widgets/custom_text_field.dart';
+import '../widgets/custom_button.dart';
 
-class LivreursScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   @override
-  _LivreursPageState createState() => _LivreursPageState();
+  _ManagerLoginPageState createState() => _ManagerLoginPageState();
 }
 
-class _LivreursPageState extends State<LivreursScreen> {
-  final LivreurService _livreurService = LivreurService();
-  late Future<List<Livreur>> _futureLivreurs;
+class _ManagerLoginPageState extends State<LoginScreen> {
+  final _userNameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-    _futureLivreurs = _livreurService.fetchLivreurs();
+  Future<void> _login() async {
+
+    if (_formKey.currentState?.validate() ?? false) {
+      final userName = _userNameController.text;
+      final password = _passwordController.text;
+
+      final success = await AuthService.login(userName, password);
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Connexion avec succes")),
+        );
+        Navigator.pushNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Compte introuvable")),
+        );
+      }
+    }
+     
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Livreurs'),
-      ),
-      body: FutureBuilder<List<Livreur>>(
-        future: _futureLivreurs,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No livreurs found'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final livreur = snapshot.data![index];
-                return ListTile(
-                  title: Text(livreur.name),
-                  subtitle: Text(livreur.email),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.blue[50],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_circle,
+                  size: 100,
+                  color: Colors.blue,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Manager Login',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[900],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
+                      CustomTextField(
+                        controller: _userNameController,
+                        label: 'Nom d`utilisateur',
+                        obscureText: false,
+                      ),
+                      SizedBox(height: 20),
+                      CustomTextField(
+                        controller: _passwordController,
+                        label: 'Mot de passe',
+                        obscureText: true,
+                      ),
+                      SizedBox(height: 20),
+                      CustomButton(
+                        text: 'Login',
+                        onPressed: _login,
+                      ),
+                      SizedBox(height: 20),
+                      TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(
+                          // Handle forgot password
+                        },
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.blue[800]),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
                             context,
-                            '/editLivreur',
-                            arguments: livreur,
+                            MaterialPageRoute(
+                                builder: (context) => RegisterPage()),
                           );
                         },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () async {
-                          await _livreurService.deleteLivreur(livreur.id);
-                          setState(() {
-                            _futureLivreurs = _livreurService.fetchLivreurs();
-                          });
-                        },
+                        child: Text(
+                          'Don\'t have an account? Register',
+                          style: TextStyle(color: Colors.blue[800]),
+                        ),
                       ),
                     ],
                   ),
-                );
-              },
-            );
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/addLivreur');
-        },
-        child: Icon(Icons.add),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

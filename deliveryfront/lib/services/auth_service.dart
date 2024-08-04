@@ -2,31 +2,37 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/api_urls.dart';
+import '../models/user.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
-  static Future<bool> login(String email, String password) async {
+  static Future<bool> login(String userName, String password) async {
     final response = await http.post(
       Uri.parse(ApiUrls.login),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
+      body: jsonEncode({'userName': userName, 'password': password}),
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      print("dattaaaaaaaa");
       print(data);
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('authToken', data['token']);
+      User user = User.fromJson(data['user']);
+      prefs.setString('user', jsonEncode(user.toJson()));
       return true;
     } else {
       return false;
     }
-  }
+
+}
 
   static Future<Map<String, dynamic>> register({
     required String email,
+    required String userName,
     required String password,
     required String name,
+    required String firstName,
     required String address,
     required String phone,
     required String companyName,
@@ -71,5 +77,27 @@ class AuthService {
         'message': e.toString(),
       };
     }
+  }
+
+   static Future<bool> isTokenValid() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    // Remplacez ceci par une vérification réelle de l'expiration du token
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    // Exemple : vérifier la validité du token avec votre backend
+    // final response = await http.get('your-api-endpoint', headers: {'Authorization': 'Bearer $token'});
+    // return response.statusCode == 200;
+
+    return true; // Assume que le token est valide pour cet exemple
+  }
+
+  static Future<void> logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 }

@@ -1,73 +1,90 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../screens/livreurs/livreur_screen.dart';
 
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
 
-class HomeScreen extends StatelessWidget {
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    LivreursScreen(),
+  ];
+
+  void _onMenuItemSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Page'),
-        backgroundColor: Colors.blue,
-      ),
-      drawer: buildDrawer(context),
-      body: Center(
-        child: Text(
-          'Welcome to the Home Page!',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Widget buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
+      body: Column(
+        children: [
+          Container(
+            color: Colors.blue,
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            height: 60.0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  'Manager Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => _onMenuItemSelected(0),
+                      child: Text(
+                        'Dashboard',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _onMenuItemSelected(1),
+                      child: Text(
+                        'Profile',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _onMenuItemSelected(0),
+                      child: Text(
+                        'Livreurs',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await AuthService.logout(context);
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: Text(
-              'Manager Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
+          ),
+          Expanded(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.dashboard),
-            title: Text('Dashboard'),
-            onTap: () {
-              Navigator.pushNamed(context, '/dashboard');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.people),
-            title: Text('Livreurs'),
-            onTap: () {
-              Navigator.pushNamed(context, '/livreurs');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
-            onTap: () async {
-              Navigator.pushReplacementNamed(context, '/login');
-            },
           ),
         ],
       ),
     );
   }
-
 }

@@ -12,6 +12,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _userNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _companyNameController = TextEditingController();
@@ -20,16 +22,20 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _register() async {
     if (_formKey.currentState?.validate() ?? false) {
       final email = _emailController.text;
+      final userName = _userNameController.text;
       final password = _passwordController.text;
       final name = _nameController.text;
+      final firstName = _firstNameController.text;
       final address = _addressController.text;
       final phone = _phoneController.text;
       final companyName = _companyNameController.text;
 
       final result = await AuthService.register(
         email: email,
+        userName:userName,
         password: password,
         name: name,
+        firstName: firstName,
         address: address,
         phone: phone,
         companyName: companyName,
@@ -98,6 +104,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                       ),
+                       SizedBox(height: 20),
+                      CustomTextFieldRegister(
+                        controller: _userNameController,
+                        label: 'Nom d`utilisateur',
+                        icon: Icons.person,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your userName';
+                          }
+                          return null;
+                        },
+                      ),
                       SizedBox(height: 20),
                       CustomTextFieldRegister(
                         controller: _passwordController,
@@ -114,11 +132,23 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(height: 20),
                       CustomTextFieldRegister(
                         controller: _nameController,
-                        label: 'Name',
+                        label: 'Nom',
                         icon: Icons.person,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your name';
+                          }
+                          return null;
+                        },
+                      ),
+                       SizedBox(height: 20),
+                      CustomTextFieldRegister(
+                        controller: _firstNameController,
+                        label: 'Prenom',
+                        icon: Icons.person,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your firstName';
                           }
                           return null;
                         },
@@ -138,7 +168,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(height: 20),
                       CustomTextFieldRegister(
                         controller: _phoneController,
-                        label: 'Phone',
+                        label: 'Telephone',
                         keyboardType: TextInputType.phone,
                         icon: Icons.phone,
                         validator: (value) {
@@ -151,7 +181,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(height: 20),
                       CustomTextFieldRegister(
                         controller: _companyNameController,
-                        label: 'Company Name',
+                        label: 'Société',
                         icon: Icons.business,
                         validator: (value) {
                           if (value == null || value.isEmpty) {

@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
     final token = prefs.getString('auth_token');
 
     final response = await http.get(
-      Uri.parse(ApiUrls.getLivreurs), // Remplacez par l'URL de votre API pour obtenir les statistiques
+      Uri.parse(ApiUrls.livreurs), // Remplacez par l'URL de votre API pour obtenir les statistiques
       headers: <String, String>{
         'x-auth-token': '$token',
       },

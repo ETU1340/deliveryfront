@@ -10,8 +10,7 @@ class ApiUrls {
   static const String getManagerById = '$baseUrl/managers/';
 
   // Livreur URLs
-  static const String getLivreurs = '$baseUrl/livreurs';
-  static const String getLivreurById = '$baseUrl/livreurs/';
+  static const String livreurs = '$baseUrl/livreurs';
 
   // Client URLs
   static const String getClients = '$baseUrl/clients';

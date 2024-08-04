@@ -1,12 +1,18 @@
-// services/livreur_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/livreur.dart';
 import '../utils/api_urls.dart';
 
 class LivreurService {
-  Future<List<Livreur>> fetchLivreurs() async {
-    final response = await http.get(Uri.parse(ApiUrls.getLivreurs));
+  
+  static Future<List<Livreur>> getLivreurs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final response = await http.get(Uri.parse(ApiUrls.livreurs),  headers: <String, String>{
+        'x-auth-token': '$token',
+      });
+      print(response.statusCode);
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((livreur) => Livreur.fromJson(livreur)).toList();
@@ -15,56 +21,45 @@ class LivreurService {
     }
   }
 
- 
-  Future<Livreur> getLivreurById(String id) async {
-    final response = await http.get(Uri.parse('${ApiUrls.getLivreurById}/$id'));
+  static Future<Livreur> getLivreurById(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final response = await http.get(Uri.parse('${ApiUrls.livreurs}/$id'), headers: <String, String>{'x-auth-token': '$token'});
     if (response.statusCode == 200) {
       return Livreur.fromJson(json.decode(response.body));
     } else {
       throw Exception('Failed to load livreur');
     }
   }
-  Future<Map<String, dynamic>> addLivreur(Livreur livreur) async {
+
+  static Future<bool> createLivreur(Livreur livreur) async {
+    print(livreur.toJson());
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
     final response = await http.post(
-      Uri.parse(ApiUrls.getLivreurById),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse(ApiUrls.livreurs),
+      headers: <String, String>{'Content-Type': 'application/json','x-auth-token': '$token'},
       body: jsonEncode(livreur.toJson()),
     );
-
-      if (response.statusCode != 200) {
-      throw Exception('Failed to add livreur');
-    }
-
-    final data = jsonDecode(response.body);
-    print("dattaaaaaaaa");
-    print(data);
-    return {
-      'success': true,
-      'data': data,
-    };
-
-  
+    print(response.statusCode);
+    return response.statusCode == 201;
   }
 
-  Future<void> updateLivreur(String id, Livreur livreur) async {
+  static Future<bool> updateLivreur(Livreur livreur) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
     final response = await http.put(
-      Uri.parse('${ApiUrls.getLivreurById}/$id'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${ApiUrls.livreurs}/${livreur.id}'),
+      headers: <String, String>{'x-auth-token': '$token'},
       body: jsonEncode(livreur.toJson()),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update livreur');
-    }
+    return response.statusCode == 200;
   }
 
-  Future<bool> deleteLivreur(String id) async {
-    final response = await http.delete(
-      Uri.parse('${ApiUrls.getClientById}/$id'),
-    );
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      return false;
-    }
+  static Future<bool> deleteLivreur(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final response = await http.delete(Uri.parse('${ApiUrls.livreurs}/$id'), headers: <String, String>{'x-auth-token': '$token'});
+    return response.statusCode == 204;
   }
 }
