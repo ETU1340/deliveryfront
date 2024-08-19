@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../screens/livreurs/livreur_screen.dart';
+import '../screens/livreurs/livreur_map.dart'; // Importez le fichier LivreurMap
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _pages = [
     LivreursScreen(),
+    LivreurMap(), // Affichage de la carte des livreurs
   ];
 
   void _onMenuItemSelected(int index) {
@@ -59,6 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () => _onMenuItemSelected(0),
                       child: Text(
                         'Livreurs',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _onMenuItemSelected(1),
+                      child: Text(
+                        'Carte des Livreurs',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

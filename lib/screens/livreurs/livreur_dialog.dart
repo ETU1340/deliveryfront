@@ -3,10 +3,15 @@ import '../../models/livreur.dart';
 import '../../services/livreur_service.dart';
 
 class LivreurDialog extends StatefulWidget {
+  final String action; // 'create' ou 'update'
   final Livreur? livreur;
   final Function(Livreur) onSave;
 
-  LivreurDialog({this.livreur, required this.onSave});
+  LivreurDialog({
+    required this.action,
+    this.livreur,
+    required this.onSave,
+  });
 
   @override
   _LivreurDialogState createState() => _LivreurDialogState();
@@ -20,30 +25,16 @@ class _LivreurDialogState extends State<LivreurDialog> {
   late TextEditingController _firstNameController;
   late TextEditingController _addressController;
   late TextEditingController _phoneController;
-  late TextEditingController _roleController;
-  late TextEditingController _currentLocationController;
-  late TextEditingController _unavailablePeriodsController;
 
   @override
   void initState() {
     super.initState();
     _emailController = TextEditingController(text: widget.livreur?.email ?? '');
-    _userNameController = TextEditingController(text: widget.livreur?.name ?? '');
+    _userNameController = TextEditingController(text: widget.livreur?.userName ?? '');
     _nameController = TextEditingController(text: widget.livreur?.name ?? '');
-    _firstNameController = TextEditingController(text: widget.livreur?.name ?? '');
+    _firstNameController = TextEditingController(text: widget.livreur?.firstName ?? '');
     _addressController = TextEditingController(text: widget.livreur?.address ?? '');
     _phoneController = TextEditingController(text: widget.livreur?.phone ?? '');
-    _roleController = TextEditingController(text: widget.livreur?.role ?? 'Livreur');
-    _currentLocationController = TextEditingController(
-      text: widget.livreur != null
-          ? '${widget.livreur!.currentLocation![0]}, ${widget.livreur!.currentLocation![1]}'
-          : '',
-    );
-    _unavailablePeriodsController = TextEditingController(
-      text: widget.livreur != null && widget.livreur!.unavailablePeriods != null
-          ? widget.livreur!.unavailablePeriods!.map((p) => p.reason).join(', ')
-          : '',
-    );
   }
 
   @override
@@ -54,14 +45,11 @@ class _LivreurDialogState extends State<LivreurDialog> {
     _firstNameController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
-    _roleController.dispose();
-    _currentLocationController.dispose();
-    _unavailablePeriodsController.dispose();
     super.dispose();
   }
 
-  Future<void> createLivreur(BuildContext context) async {
-   if (_formKey.currentState?.validate() ?? false) {
+  Future<void> _saveLivreur(BuildContext context) async {
+    if (_formKey.currentState?.validate() ?? false) {
       final livreur = Livreur(
         id: widget.livreur?.id ?? '',
         email: _emailController.text,
@@ -69,16 +57,23 @@ class _LivreurDialogState extends State<LivreurDialog> {
         name: _nameController.text,
         firstName: _firstNameController.text,
         address: _addressController.text,
-        phone: _phoneController.text);
-      final success = await LivreurService.createLivreur(livreur);
-      if(success) {
-         Navigator.pop(context);
+        phone: _phoneController.text,
+        role: 'Livreur',
+      );
+
+      final success = widget.action == 'create'
+          ? await LivreurService.createLivreur(livreur)
+          : await LivreurService.updateLivreur(livreur);
+
+      if (success) {
+        widget.onSave(livreur);
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Livreur crée avec succés")),
+          SnackBar(content: Text(widget.action == 'create' ? 'Livreur créé avec succès' : 'Livreur mis à jour avec succès')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("une erreur ces produite")),
+          SnackBar(content: Text('Une erreur s\'est produite')),
         );
       }
     }
@@ -87,7 +82,7 @@ class _LivreurDialogState extends State<LivreurDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.livreur == null ? 'Add Livreur' : 'Edit Livreur'),
+      title: Text(widget.action == 'create' ? 'Ajouter un livreur' : 'Modifier le livreur'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -99,57 +94,57 @@ class _LivreurDialogState extends State<LivreurDialog> {
                 decoration: InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter email';
+                    return 'Veuillez entrer un email';
                   }
                   return null;
                 },
               ),
-               TextFormField(
+              TextFormField(
                 controller: _userNameController,
-                decoration: InputDecoration(labelText: 'Nom d`utilisateur'),
+                decoration: InputDecoration(labelText: 'Nom d\'utilisateur'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter userName';
+                    return 'Veuillez entrer un nom d\'utilisateur';
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: 'Nom'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter name';
+                    return 'Veuillez entrer un nom';
                   }
                   return null;
                 },
               ),
-               TextFormField(
+              TextFormField(
                 controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'firstName'),
+                decoration: InputDecoration(labelText: 'Prénom'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entré le prenom';
+                    return 'Veuillez entrer un prénom';
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _addressController,
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: InputDecoration(labelText: 'Adresse'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter address';
+                    return 'Veuillez entrer une adresse';
                   }
                   return null;
                 },
               ),
               TextFormField(
                 controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Phone'),
+                decoration: InputDecoration(labelText: 'Téléphone'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter phone';
+                    return 'Veuillez entrer un numéro de téléphone';
                   }
                   return null;
                 },
@@ -163,13 +158,13 @@ class _LivreurDialogState extends State<LivreurDialog> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text('Cancel'),
+          child: Text('Annuler'),
         ),
         TextButton(
           onPressed: () {
-           createLivreur(context);
+            _saveLivreur(context);
           },
-          child: Text('Save'),
+          child: Text('Enregistrer'),
         ),
       ],
     );

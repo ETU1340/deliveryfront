@@ -35,7 +35,6 @@ class AuthService {
     required String firstName,
     required String address,
     required String phone,
-    required String companyName,
   }) async {
     try {
       final response = await http.post(
@@ -49,7 +48,6 @@ class AuthService {
           'name': name,
           'address': address,
           'phone': phone,
-          'companyName': companyName,
           'role': 'manager', // Définir le rôle ici
         }),
       );

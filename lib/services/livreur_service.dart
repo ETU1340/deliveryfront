@@ -9,12 +9,14 @@ class LivreurService {
   static Future<List<Livreur>> getLivreurs() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
+    print(token);
     final response = await http.get(Uri.parse(ApiUrls.livreurs),  headers: <String, String>{
         'x-auth-token': '$token',
       });
       print(response.statusCode);
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
+      print(jsonResponse);
       return jsonResponse.map((livreur) => Livreur.fromJson(livreur)).toList();
     } else {
       throw Exception('Failed to load livreurs');
@@ -33,7 +35,7 @@ class LivreurService {
   }
 
   static Future<bool> createLivreur(Livreur livreur) async {
-    print(livreur.toJson());
+    print('createeeeeeeeeee');
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
     final response = await http.post(
@@ -46,6 +48,7 @@ class LivreurService {
   }
 
   static Future<bool> updateLivreur(Livreur livreur) async {
+     print('updateeeeeeeeeeee');
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
     final response = await http.put(

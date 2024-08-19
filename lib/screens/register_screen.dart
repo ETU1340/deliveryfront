@@ -16,7 +16,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _firstNameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _companyNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   Future<void> _register() async {
@@ -28,7 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
       final firstName = _firstNameController.text;
       final address = _addressController.text;
       final phone = _phoneController.text;
-      final companyName = _companyNameController.text;
 
       final result = await AuthService.register(
         email: email,
@@ -38,7 +36,6 @@ class _RegisterPageState extends State<RegisterPage> {
         firstName: firstName,
         address: address,
         phone: phone,
-        companyName: companyName,
       );
 
       if (result['success']) {
@@ -174,18 +171,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-                      CustomTextFieldRegister(
-                        controller: _companyNameController,
-                        label: 'Société',
-                        icon: Icons.business,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your company name';
                           }
                           return null;
                         },

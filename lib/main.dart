@@ -14,9 +14,9 @@ void main() {
     }
   });
 
-    FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    Logger('FlutterError').severe(details.exceptionAsString(), details.exception, details.stack);
+  FlutterError.onError = (FlutterErrorDetails details) {
+  FlutterError.presentError(details);
+  Logger('FlutterError').severe(details.exceptionAsString(), details.exception, details.stack);
   };
 
   runZonedGuarded(() {
