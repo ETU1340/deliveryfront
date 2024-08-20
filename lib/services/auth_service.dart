@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/api_urls.dart';
-import '../models/user.dart';
+import '../models/manager.dart';
 import 'package:flutter/material.dart';
 
 class AuthService {
@@ -18,8 +18,8 @@ class AuthService {
       print(data);
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('authToken', data['token']);
-      User user = User.fromJson(data['user']);
-      prefs.setString('user', jsonEncode(user.toJson()));
+      Manager manager = Manager.fromJson(data['user']);
+      prefs.setString('manager', jsonEncode(manager.toJson()));
       return true;
     } else {
       return false;
@@ -35,6 +35,10 @@ class AuthService {
     required String firstName,
     required String address,
     required String phone,
+    required String companyName,
+    required String province,
+    required double longitude,
+    required double latitude,
   }) async {
     try {
       final response = await http.post(
@@ -42,13 +46,20 @@ class AuthService {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode(<String, String>{
+        body: jsonEncode(<String, dynamic>{
           'email': email,
           'password': password,
           'name': name,
           'address': address,
+          'userName': userName,
+          'firstName': firstName,
           'phone': phone,
-          'role': 'manager', // Définir le rôle ici
+          'companyName': companyName,
+          'province': province,
+          'location': {
+          'longitude': longitude,
+          'latitude': latitude
+          }
         }),
       );
 
@@ -96,6 +107,6 @@ class AuthService {
   static Future<void> logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
-    Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context).pushReplacementNamed('/');
   }
 }

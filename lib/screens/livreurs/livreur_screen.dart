@@ -16,6 +16,17 @@ class _LivreursScreenState extends State<LivreursScreen> {
   List<String> _selectedLivreurs = [];
   String _searchQuery = '';
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
+  String? _selectedTransport; // Filtre par moyen de transport
+
+   final List<String> _transports = [
+    'Tous',
+    'Voiture',
+    'Moto',
+    'Vélo',
+    'Camion',
+  ]; // Exemple de moyens de transport
+
+
 
   @override
   void initState() {
@@ -36,6 +47,14 @@ class _LivreursScreenState extends State<LivreursScreen> {
         SnackBar(content: Text('Échec du chargement des livreurs')),
       );
     }
+  }
+  void _showLivreurDetails(Livreur livreur) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LivreurDetailsModal(livreur: livreur);
+      },
+    );
   }
 
   void _createOrUpdateLivreur(String action, [Livreur? livreur]) {
@@ -97,6 +116,13 @@ class _LivreursScreenState extends State<LivreursScreen> {
     }
   }
 
+   void _filterByTransport(String? transport) {
+    setState(() {
+      _selectedTransport = transport;
+      _filterLivreurs(_searchQuery);
+    });
+  }
+
   Future<void> _confirmDeleteSelectedLivreurs() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -153,11 +179,16 @@ class _LivreursScreenState extends State<LivreursScreen> {
   void _filterLivreurs(String query) {
     setState(() {
       _searchQuery = query;
-      _filteredLivreurs = _livreurs
-          .where((livreur) =>
-              livreur.name.toLowerCase().contains(query.toLowerCase()) ||
-              livreur.email.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      _filteredLivreurs = _livreurs.where((livreur) {
+        final matchNameOrEmail = livreur.name.toLowerCase().contains(query.toLowerCase()) ||
+            livreur.email.toLowerCase().contains(query.toLowerCase());
+
+        final matchTransport = _selectedTransport == null || _selectedTransport == 'Tous'
+            ? true
+            : livreur.moyenDeTransport == _selectedTransport;
+
+        return matchNameOrEmail && matchTransport;
+      }).toList();
     });
   }
 
@@ -182,13 +213,38 @@ class _LivreursScreenState extends State<LivreursScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Rechercher',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: _filterLivreurs,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Rechercher',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: _filterLivreurs,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedTransport ?? 'Tous',
+                    decoration: InputDecoration(
+                      labelText: 'Transport',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _transports.map((String transport) {
+                      return DropdownMenuItem<String>(
+                        value: transport,
+                        child: Text(transport),
+                      );
+                    }).toList(),
+                    onChanged: _filterByTransport,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -209,6 +265,7 @@ class _LivreursScreenState extends State<LivreursScreen> {
                     DataColumn(label: Text('Nom')),
                     DataColumn(label: Text('Email')),
                     DataColumn(label: Text('Téléphone')),
+                    DataColumn(label: Text('Transport')),
                     DataColumn(label: Text('Actions')),
                   ],
                   source: _LivreurDataSource(
@@ -216,6 +273,7 @@ class _LivreursScreenState extends State<LivreursScreen> {
                     selectedLivreurs: _selectedLivreurs,
                     onDelete: _confirmDeleteLivreur,
                     onEdit: (livreur) => _createOrUpdateLivreur('update', livreur),
+                    onDetails: (livreur) =>_showLivreurDetails(livreur),
                     onSelectionChanged: () {
                       setState(() {
                         // Met à jour l'interface pour afficher le bouton de suppression en masse
@@ -232,11 +290,13 @@ class _LivreursScreenState extends State<LivreursScreen> {
   }
 }
 
+
 class _LivreurDataSource extends DataTableSource {
   final List<Livreur> livreurs;
   final List<String> selectedLivreurs;
   final void Function(String) onDelete;
   final void Function(Livreur) onEdit;
+  final void Function(Livreur) onDetails;
   final VoidCallback onSelectionChanged;
 
   _LivreurDataSource({
@@ -244,8 +304,11 @@ class _LivreurDataSource extends DataTableSource {
     required this.selectedLivreurs,
     required this.onDelete,
     required this.onEdit,
+    required this.onDetails,
     required this.onSelectionChanged,
   });
+
+
 
   @override
   DataRow getRow(int index) {
@@ -268,8 +331,13 @@ class _LivreurDataSource extends DataTableSource {
         DataCell(Text(livreur.name)),
         DataCell(Text(livreur.email)),
         DataCell(Text(livreur.phone)),
+        DataCell(Text(livreur.moyenDeTransport)),
         DataCell(Row(
           children: [
+             IconButton(
+              icon: Icon(Icons.visibility, color: Colors.green),
+              onPressed: () => onDetails(livreur),
+            ),
             IconButton(
               icon: Icon(Icons.edit, color: Colors.blue),
               onPressed: () => onEdit(livreur),
@@ -277,12 +345,13 @@ class _LivreurDataSource extends DataTableSource {
             IconButton(
               icon: Icon(Icons.delete, color: Colors.red),
               onPressed: () => onDelete(livreur.id),
-            ),
+            )
           ],
         )),
       ],
     );
   }
+  
 
   @override
   bool get isRowCountApproximate => false;

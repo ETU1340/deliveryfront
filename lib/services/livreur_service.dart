@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/livreur.dart';
 import '../utils/api_urls.dart';
-
+import 'dart:typed_data';
 class LivreurService {
   
   static Future<List<Livreur>> getLivreurs() async {
@@ -34,30 +34,71 @@ class LivreurService {
     }
   }
 
-  static Future<bool> createLivreur(Livreur livreur) async {
-    print('createeeeeeeeeee');
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
-    final response = await http.post(
-      Uri.parse(ApiUrls.livreurs),
-      headers: <String, String>{'Content-Type': 'application/json','x-auth-token': '$token'},
-      body: jsonEncode(livreur.toJson()),
+static Future<bool> createLivreur(Livreur livreur, Uint8List? imageBytes, String? imageName) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+
+  final uri = Uri.parse(ApiUrls.livreurs);
+  final request = http.MultipartRequest('POST', uri)
+    ..headers['x-auth-token'] = '$token';
+
+  request.fields['email'] = livreur.email;
+  request.fields['userName'] = livreur.userName;
+  request.fields['name'] = livreur.name;
+  request.fields['firstName'] = livreur.firstName;
+  request.fields['address'] = livreur.address;
+  request.fields['phone'] = livreur.phone;
+  request.fields['moyenDeTransport'] = livreur.moyenDeTransport;
+  request.fields['longitude'] = livreur.currentLocation!.longitude.toString();
+  request.fields['latitude'] = livreur.currentLocation!.latitude.toString();
+
+  // Ajoutez le fichier image si présent
+  if (imageBytes != null && imageName != null) {
+    final multipartFile = http.MultipartFile.fromBytes(
+      'image',
+      imageBytes,
+      filename: imageName, // Utilisation du nom de fichier pour préserver l'extension
     );
-    print(response.statusCode);
-    return response.statusCode == 201;
+    request.files.add(multipartFile);
   }
 
-  static Future<bool> updateLivreur(Livreur livreur) async {
-     print('updateeeeeeeeeeee');
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
-    final response = await http.put(
-      Uri.parse('${ApiUrls.livreurs}/${livreur.id}'),
-      headers: <String, String>{'x-auth-token': '$token'},
-      body: jsonEncode(livreur.toJson()),
+  final response = await request.send();
+  return response.statusCode == 201;
+}
+
+static Future<bool> updateLivreur(Livreur livreur, Uint8List? imageBytes, String? imageName) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+
+  final uri = Uri.parse('${ApiUrls.livreurs}/${livreur.id}');
+  final request = http.MultipartRequest('PUT', uri)
+    ..headers['x-auth-token'] = '$token';
+
+  // Ajoutez les champs JSON
+  request.fields['email'] = livreur.email;
+  request.fields['userName'] = livreur.userName;
+  request.fields['name'] = livreur.name;
+  request.fields['firstName'] = livreur.firstName;
+  request.fields['address'] = livreur.address;
+  request.fields['phone'] = livreur.phone;
+  request.fields['moyenDeTransport'] = livreur.moyenDeTransport;
+  request.fields['longitude'] = livreur.currentLocation!.longitude.toString();
+  request.fields['latitude'] = livreur.currentLocation!.latitude.toString();
+
+
+  // Ajoutez le fichier image si présent
+  if (imageBytes != null && imageName != null) {
+    final multipartFile = http.MultipartFile.fromBytes(
+      'image',
+      imageBytes,
+      filename: imageName, // Utilisation du nom de fichier pour préserver l'extension
     );
-    return response.statusCode == 200;
+    request.files.add(multipartFile);
   }
+
+  final response = await request.send();
+  return response.statusCode == 200;
+}
 
   static Future<bool> deleteLivreur(String id) async {
     final prefs = await SharedPreferences.getInstance();

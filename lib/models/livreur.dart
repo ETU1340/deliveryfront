@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'location.dart';
 class Livreur {
   final String id;
   final String email;
@@ -9,8 +9,11 @@ class Livreur {
   final String address;
   final String phone;
   final String? role;
+  final String? managerId;
   final Location? currentLocation; // Modifier currentLocation en un objet Location
   final List<UnavailablePeriod>? unavailablePeriods;
+  final String moyenDeTransport; // Champ moyen de transport
+  final String? image; // Nouveau champ pour l'image
 
   Livreur({
     required this.id,
@@ -21,8 +24,11 @@ class Livreur {
     required this.phone,
     required this.firstName,
     this.role,
+    this.managerId,
     this.currentLocation,
     this.unavailablePeriods,
+    required this.moyenDeTransport,
+    this.image, // Initialisation du champ image
   });
 
   // Convert from JSON
@@ -36,6 +42,7 @@ class Livreur {
       address: json['address'] ?? '',
       phone: json['phone'] ?? '',
       role: json['role'] ?? '',
+      managerId: json['managerId'] ?? '',
       currentLocation: json['currentLocation'] != null
           ? Location.fromJson(json['currentLocation'])
           : null,
@@ -43,6 +50,8 @@ class Livreur {
           ? List<UnavailablePeriod>.from(
               json['unavailablePeriods'].map((x) => UnavailablePeriod.fromJson(x)))
           : null,
+      moyenDeTransport: json['moyenDeTransport'] ?? '',
+      image: json['image'] ?? '', // Récupération du champ image
     );
   }
 
@@ -56,34 +65,13 @@ class Livreur {
         'address': address,
         'phone': phone,
         'role': role,
+        'managerId': managerId,
         'currentLocation': currentLocation?.toJson(),
         'unavailablePeriods': unavailablePeriods != null
             ? List<dynamic>.from(unavailablePeriods!.map((x) => x.toJson()))
             : null,
-      };
-}
-
-class Location {
-  final double latitude;
-  final double longitude;
-
-  Location({
-    required this.latitude,
-    required this.longitude,
-  });
-
-  // Convert from JSON
-  factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-      latitude: json['latitude']?.toDouble() ?? 0.0,
-      longitude: json['longitude']?.toDouble() ?? 0.0,
-    );
-  }
-
-  // Convert to JSON
-  Map<String, dynamic> toJson() => {
-        'latitude': latitude,
-        'longitude': longitude,
+        'moyenDeTransport': moyenDeTransport,
+        'image': image, // Conversion du champ image en JSON
       };
 }
 

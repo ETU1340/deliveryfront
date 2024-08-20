@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../screens/livreurs/livreur_screen.dart';
 import '../screens/livreurs/livreur_map.dart'; // Importez le fichier LivreurMap
-
+import '../services/manager_service.dart';
+import '../models/manager.dart';
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -10,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
+  String? _companyName;
   final List<Widget> _pages = [
     LivreursScreen(),
     LivreurMap(), // Affichage de la carte des livreurs
@@ -19,6 +20,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onMenuItemSelected(int index) {
     setState(() {
       _selectedIndex = index;
+    });
+  }
+
+
+   @override
+  void initState() {
+    super.initState();
+    _loadCompanyName();
+  }
+
+  Future<void> _loadCompanyName() async {
+    Manager? manager = await ManagerService.getManagerSession();
+    setState(() {
+      _companyName = manager!.companyName;
     });
   }
 
@@ -34,8 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
+                 // Affichage de l'information companyName
                 Text(
-                  'Manager Menu',
+                  _companyName ?? 'Nom de la société',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -74,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextButton(
                       onPressed: () async {
                         await AuthService.logout(context);
-                        Navigator.pushReplacementNamed(context, '/login');
                       },
                       child: Text(
                         'Logout',

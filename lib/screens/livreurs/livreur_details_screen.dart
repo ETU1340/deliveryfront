@@ -1,72 +1,101 @@
 import 'package:flutter/material.dart';
 import '../../models/livreur.dart';
 
-class LivreurDetailsScreen extends StatelessWidget {
+class LivreurDetailsModal extends StatelessWidget {
   final Livreur livreur;
 
-  LivreurDetailsScreen({required this.livreur});
+  LivreurDetailsModal({required this.livreur});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${livreur.name} Details'),
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
       ),
-      body: Padding(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Name: ${livreur.name}',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text('Email: ${livreur.email}'),
-                  SizedBox(height: 10),
-                  Text('Phone: ${livreur.phone}'),
-                  SizedBox(height: 10),
-                  Text('Address: ${livreur.address}'),
-                  SizedBox(height: 10),
-                  Text('Role: ${livreur.role}'),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Unavailable Periods',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  if (livreur.unavailablePeriods!.isEmpty)
-                    Text('No unavailable periods'),
-                  for (var period in livreur.unavailablePeriods!)
-                    Card(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Start Date: ${period.startDate.toLocal()}'),
-                            Text('End Date: ${period.endDate.toLocal()}'),
-                            Text('Reason: ${period.reason}'),
-                          ],
-                        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      '${livreur.name} ${livreur.firstName}',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+              Divider(),
+              SizedBox(height: 20),
+              _buildDetailRow('Email', livreur.email),
+              _buildDetailRow('Nom d\'utilisateur', livreur.userName),
+              _buildDetailRow('Téléphone', livreur.phone),
+              _buildDetailRow('Adresse', livreur.address),
+
+              SizedBox(height: 20),
+              Divider(),
+              SizedBox(height: 10),
+              Text(
+                'Transport actuelle',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                livreur.moyenDeTransport,
+                style: TextStyle(fontSize: 16),
+              ),
+              
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Fermer'),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$title: ',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

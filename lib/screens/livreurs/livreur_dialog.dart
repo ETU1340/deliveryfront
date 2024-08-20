@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../models/livreur.dart';
 import '../../services/livreur_service.dart';
+import '../../models/manager.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data'; // Pour les fichiers sur le Web7
+import '../../services/manager_service.dart';
 
 class LivreurDialog extends StatefulWidget {
   final String action; // 'create' ou 'update'
   final Livreur? livreur;
   final Function(Livreur) onSave;
 
-  LivreurDialog({
+ LivreurDialog({
     required this.action,
     this.livreur,
     required this.onSave,
@@ -16,7 +20,6 @@ class LivreurDialog extends StatefulWidget {
   @override
   _LivreurDialogState createState() => _LivreurDialogState();
 }
-
 class _LivreurDialogState extends State<LivreurDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
@@ -25,6 +28,17 @@ class _LivreurDialogState extends State<LivreurDialog> {
   late TextEditingController _firstNameController;
   late TextEditingController _addressController;
   late TextEditingController _phoneController;
+  String? _selectedMoyenDeTransport;
+  Uint8List? _webImage;
+  String? _imageName; // Variable pour stocker le nom du fichier
+
+  List<String> moyensDeTransport = [
+  'Vélo',
+  'Moto',
+  'Voiture',
+  'Camion',
+];
+
 
   @override
   void initState() {
@@ -35,6 +49,7 @@ class _LivreurDialogState extends State<LivreurDialog> {
     _firstNameController = TextEditingController(text: widget.livreur?.firstName ?? '');
     _addressController = TextEditingController(text: widget.livreur?.address ?? '');
     _phoneController = TextEditingController(text: widget.livreur?.phone ?? '');
+    _selectedMoyenDeTransport = widget.livreur?.moyenDeTransport ?? moyensDeTransport.first;
   }
 
   @override
@@ -48,8 +63,20 @@ class _LivreurDialogState extends State<LivreurDialog> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() async {
+        _webImage = await pickedFile.readAsBytes();
+        _imageName = pickedFile.name; // Récupération du nom du fichier
+      });
+    }
+  }
+
   Future<void> _saveLivreur(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
+      Manager? manager = await ManagerService.getManagerSession();
+
       final livreur = Livreur(
         id: widget.livreur?.id ?? '',
         email: _emailController.text,
@@ -59,11 +86,15 @@ class _LivreurDialogState extends State<LivreurDialog> {
         address: _addressController.text,
         phone: _phoneController.text,
         role: 'Livreur',
+        managerId: manager?.id,
+        currentLocation: manager?.location,
+        moyenDeTransport: _selectedMoyenDeTransport!,
+        image: null, // L'image sera gérée par le backend
       );
 
       final success = widget.action == 'create'
-          ? await LivreurService.createLivreur(livreur)
-          : await LivreurService.updateLivreur(livreur);
+          ? await LivreurService.createLivreur(livreur, _webImage, _imageName)
+          : await LivreurService.updateLivreur(livreur, _webImage, _imageName);
 
       if (success) {
         widget.onSave(livreur);
@@ -148,6 +179,35 @@ class _LivreurDialogState extends State<LivreurDialog> {
                   }
                   return null;
                 },
+              ),
+              DropdownButtonFormField<String>(
+                value: _selectedMoyenDeTransport,
+                decoration: InputDecoration(labelText: 'Moyen de Transport'),
+                items: moyensDeTransport.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedMoyenDeTransport = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez sélectionner un moyen de transport';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              _webImage != null
+                  ? Image.memory(_webImage!)
+                  : Container(),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Sélectionner une image'),
               ),
             ],
           ),

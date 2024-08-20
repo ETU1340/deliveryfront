@@ -1,4 +1,5 @@
-class User {
+import 'location.dart';
+class Manager {
   final String id;
   final String email;
   final String password;
@@ -6,8 +7,11 @@ class User {
   final String address;
   final String phone;
   final String role;
+  final String companyName;
+  final String province;
+  final Location location; // Utilisation de la classe Location
 
-  User({
+  Manager({
     required this.id,
     required this.email,
     required this.password,
@@ -15,10 +19,13 @@ class User {
     required this.address,
     required this.phone,
     required this.role,
+    required this.companyName,
+    required this.province,
+    required this.location,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  factory Manager.fromJson(Map<String, dynamic> json) {
+    return Manager(
       id: json['_id'],
       email: json['email'],
       password: json['password'],
@@ -26,6 +33,9 @@ class User {
       address: json['address'],
       phone: json['phone'],
       role: json['role'],
+      companyName: json['companyName'],
+      province: json['province'],
+      location: Location.fromJson(json['location']), // Conversion à partir de JSON
     );
   }
 
@@ -38,6 +48,9 @@ class User {
       'address': address,
       'phone': phone,
       'role': role,
+      'companyName': companyName,
+      'province': province,
+      'location': location.toJson(), // Conversion en JSON
     };
   }
 }
