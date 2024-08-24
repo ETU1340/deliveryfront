@@ -4,6 +4,8 @@ import '../screens/livreurs/livreur_screen.dart';
 import '../screens/livreurs/livreur_map.dart'; // Importez le fichier LivreurMap
 import '../services/manager_service.dart';
 import '../models/manager.dart';
+import './delivery/delivery_planning_screen.dart'; 
+import './delivery/delivery_list_screen.dart'; 
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -14,7 +16,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _companyName;
   final List<Widget> _pages = [
     LivreursScreen(),
-    LivreurMap(), // Affichage de la carte des livreurs
+    LivreurMap(),
+    DeliveryListScreen(), // Affichage de la carte des livreurs
+    DeliveryPlanningScreen(), 
   ];
 
   void _onMenuItemSelected(int index) {
@@ -74,6 +78,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
+                      onPressed: () => _onMenuItemSelected(2),  // Index 2 pour Delivery List
+                      child: Text(
+                        'Livraisons',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                     TextButton(
+                      onPressed: () => _onMenuItemSelected(3),
+                      child: Text(
+                        'Planification des Livraisons',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
                       onPressed: () => _onMenuItemSelected(0),
                       child: Text(
                         'Livreurs',
@@ -83,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextButton(
                       onPressed: () => _onMenuItemSelected(1),
                       child: Text(
-                        'Carte des Livreurs',
+                        'Visualisation sur carte',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

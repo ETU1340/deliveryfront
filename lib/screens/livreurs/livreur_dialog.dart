@@ -85,11 +85,8 @@ class _LivreurDialogState extends State<LivreurDialog> {
         firstName: _firstNameController.text,
         address: _addressController.text,
         phone: _phoneController.text,
-        role: 'Livreur',
-        managerId: manager?.id,
         currentLocation: manager?.location,
         moyenDeTransport: _selectedMoyenDeTransport!,
-        image: null, // L'image sera gérée par le backend
       );
 
       final success = widget.action == 'create'

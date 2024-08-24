@@ -1,9 +1,17 @@
+
 import 'package:flutter/material.dart';
 import '../../models/livreur.dart';
 import '../../services/livreur_service.dart';
 import './livreur_dialog.dart';
 import './livreur_details_screen.dart';
-
+import 'package:file_picker/file_picker.dart';
+import 'dart:html' as html; // Import nécessaire pour Flutter Web
+import 'package:csv/csv.dart';
+import 'dart:convert';
+import 'dart:io';
+import '../../services/manager_service.dart';
+import '../../models/manager.dart';
+import 'progress_dialog_screen.dart';
 class LivreursScreen extends StatefulWidget {
   @override
   _LivreursScreenState createState() => _LivreursScreenState();
@@ -88,6 +96,88 @@ class _LivreursScreenState extends State<LivreursScreen> {
         },
       ),
     );
+  }
+
+  
+
+void _importCsv() {
+  // Crée un élément input de type fichier
+  html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+  uploadInput.accept = '.csv'; // Limite le type de fichier à .csv
+
+  uploadInput.onChange.listen((e) async {
+    final files = uploadInput.files;
+    if (files?.isEmpty ?? true) return;
+
+    final file = files!.first;
+    final reader = html.FileReader();
+
+    reader.readAsText(file);
+
+    // Afficher le dialogue de progression
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Empêche la fermeture du dialogue en cliquant à l'extérieur
+      builder: (BuildContext context) {
+        return ProgressDialog(); // Widget customisé pour afficher la progression
+      },
+    );
+
+    reader.onLoadEnd.listen((e) async {
+      final csvContent = reader.result as String;
+
+      // Traitement des données CSV
+      final lines = const LineSplitter().convert(csvContent);
+      final fields = lines.map((line) => line.split(',')).toList();
+
+      Manager? manager = await ManagerService.getManagerSession();
+
+      // Ignorer la première ligne (en-têtes de colonne)
+      for (int i = 1; i < fields.length; i++) {
+        final row = fields[i];
+
+        final livreur = Livreur(
+          id: '', // ID sera généré par le backend
+          email: row[0],
+          userName: row[1],
+          name: row[2],
+          firstName: row[3],
+          address: row[4],
+          phone: row[5],
+          moyenDeTransport: row[6],
+          currentLocation: manager!.location, // Configurez ceci si nécessaire
+        );
+
+        // Envoyer chaque livreur au backend
+        await _uploadLivreur(livreur);
+
+        // Mettre à jour la progression dans le dialogue
+        ProgressDialog.updateProgress(i, fields.length - 1);
+      }
+
+      // Fermer le dialogue de progression après l'importation
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Importation CSV réussie')),
+      );
+      await _loadLivreurs();
+    });
+  });
+
+  // Déclenche le clic pour ouvrir le sélecteur de fichiers
+  uploadInput.click();
+}
+
+
+  // Fonction pour envoyer les données du livreur au backend
+  Future<void> _uploadLivreur(Livreur livreur) async {
+    try {
+        await LivreurService.createLivreur(livreur,null,null);
+
+    } catch (e) {
+      print('Erreur lors de l\'importation: $e');
+    }
   }
 
   Future<void> _confirmDeleteLivreur(String id) async {
@@ -207,6 +297,10 @@ class _LivreursScreenState extends State<LivreursScreen> {
               icon: Icon(Icons.delete, color: Colors.red),
               onPressed: _confirmDeleteSelectedLivreurs,
             ),
+          IconButton(
+            icon: Icon(Icons.upload_file),
+            onPressed: _importCsv, // Ajouter le bouton pour importer CSV
+          ),
         ],
       ),
       body: Column(
@@ -352,6 +446,8 @@ class _LivreurDataSource extends DataTableSource {
     );
   }
   
+
+
 
   @override
   bool get isRowCountApproximate => false;

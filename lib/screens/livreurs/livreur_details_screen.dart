@@ -15,59 +15,90 @@ class LivreurDetailsModal extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
+              // Partie gauche avec les détails du livreur
+              Expanded(
+                flex: 2,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                    Center(
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundImage:
+                                NetworkImage('https://via.placeholder.com/150'),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            '${livreur.name} ${livreur.firstName}',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 20),
+                    Divider(),
+                    SizedBox(height: 20),
+                    _buildDetailRow('Email', livreur.email),
+                    _buildDetailRow('Nom d\'utilisateur', livreur.userName),
+                    _buildDetailRow('Téléphone', livreur.phone),
+                    _buildDetailRow('Adresse', livreur.address),
+                    SizedBox(height: 20),
+                    Divider(),
+                    SizedBox(height: 10),
                     Text(
-                      '${livreur.name} ${livreur.firstName}',
+                      'Transport actuel',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      livreur.moyenDeTransport,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Fermer'),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-              Divider(),
-              SizedBox(height: 20),
-              _buildDetailRow('Email', livreur.email),
-              _buildDetailRow('Nom d\'utilisateur', livreur.userName),
-              _buildDetailRow('Téléphone', livreur.phone),
-              _buildDetailRow('Adresse', livreur.address),
-
-              SizedBox(height: 20),
-              Divider(),
-              SizedBox(height: 10),
-              Text(
-                'Transport actuelle',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueAccent,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                livreur.moyenDeTransport,
-                style: TextStyle(fontSize: 16),
-              ),
-              
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Fermer'),
-                ),
-              ),
+              // Partie droite avec les informations d'indisponibilité
+              if (livreur.unavailablePeriods != null)
+                ...[
+                  SizedBox(width: 20), // Espace entre les deux colonnes
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Indisponibilités',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        ..._buildUnavailablePeriods(livreur.unavailablePeriods!),
+                      ],
+                    ),
+                  ),
+                ],
             ],
           ),
         ),
@@ -98,5 +129,40 @@ class LivreurDetailsModal extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildUnavailablePeriods(List<UnavailablePeriod> periods) {
+    List<Widget> widgets = [];
+    for (UnavailablePeriod period in periods) {
+
+        widgets.add(Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Du ${_formatDate(period.startDate)} au ${_formatDate(period.endDate)}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              'Raison: ${period.reason}',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 10),
+          ],
+        ));
+      
+    }
+    return widgets;
+  }
+
+  String _formatDate(DateTime date) {
+    // Fonction utilitaire pour formater la date
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

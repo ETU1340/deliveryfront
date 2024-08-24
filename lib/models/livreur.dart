@@ -31,6 +31,22 @@ class Livreur {
     this.image, // Initialisation du champ image
   });
 
+    // Nouveau constructeur sans 'moyenDeTransport'
+  Livreur.withoutMoyenDeTransport({
+    required this.id,
+    required this.email,
+    required this.userName,
+    required this.name,
+    required this.address,
+    required this.phone,
+    required this.firstName,
+    this.role,
+    this.managerId,
+    this.currentLocation,
+    this.unavailablePeriods,
+    this.image, 
+  }) : moyenDeTransport = "";
+
   // Convert from JSON
   factory Livreur.fromJson(Map<String, dynamic> json) {
     return Livreur(
