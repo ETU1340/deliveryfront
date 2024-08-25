@@ -89,15 +89,15 @@ class _LivreurMapState extends State<LivreurMap> {
   Icon _getTransportIcon(String moyenDeTransport) {
     switch (moyenDeTransport) {
       case 'Vélo':
-        return Icon(Icons.pedal_bike, color: Colors.blue, size: 20);
+        return Icon(Icons.pedal_bike, color: Colors.blue, size: 25);
       case 'Moto':
-        return Icon(Icons.delivery_dining, color: Colors.blue, size: 20);
+        return Icon(Icons.delivery_dining, color: Colors.blue, size: 25);
       case 'Voiture':
-        return Icon(Icons.directions_car, color: Colors.blue, size: 20);
+        return Icon(Icons.directions_car, color: Colors.blue, size: 25);
       case 'Camion':
-        return Icon(Icons.local_shipping, color: Colors.blue, size: 20);
+        return Icon(Icons.local_shipping, color: Colors.blue, size: 25);
       default:
-        return Icon(Icons.person, color: Colors.blue, size: 20);
+        return Icon(Icons.person, color: Colors.blue, size: 25);
     }
   }
 
@@ -153,10 +153,10 @@ class _LivreurMapState extends State<LivreurMap> {
                   delivery.deliveryAddress.longitude,
                 ),
                 builder: (ctx) =>
-                    Icon(Icons.person_pin_circle, color: Colors.red, size: 20),
+                    Icon(Icons.person_pin_circle, color: Colors.red, size: 25),
               ));
             },
-            child: Icon(Icons.person_pin_circle, color: Colors.red, size: 20),
+            child: Icon(Icons.person_pin_circle, color: Colors.red, size: 25),
           ),
         );
       }).toList());
