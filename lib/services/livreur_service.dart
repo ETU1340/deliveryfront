@@ -9,7 +9,6 @@ class LivreurService {
   static Future<List<Livreur>> getLivreurs() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
-    print(token);
     final response = await http.get(Uri.parse(ApiUrls.livreurs),  headers: <String, String>{
         'x-auth-token': '$token',
       });
