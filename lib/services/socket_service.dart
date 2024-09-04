@@ -40,11 +40,11 @@ class SocketService extends ChangeNotifier {
     socket.emit('sendMessage', messageData);
   }
 
-  void onMessageReceived(Function(Map<String, dynamic>) onMessage) {
-    socket.on('receiveMessage', (data) {
-      onMessage(Map<String, dynamic>.from(data));
-    });
-  }
+void onMessageReceived(Function(Map<String, dynamic>) onMessage) {
+  socket.on('receiveMessage', (data) {
+    onMessage(Map<String, dynamic>.from(data));
+  });
+}
 
   void joinRoom(String roomId) {
     socket.emit('joinRoom', roomId);

@@ -32,8 +32,6 @@ static Future<List<Delivery>> getDeliveries() async {
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
-      print("response");
-      print(response.body);
       return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();
     } else {
       print('Failed to load deliveries with status code: ${response.statusCode}');

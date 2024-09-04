@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../screens/livreurs/livreur_screen.dart';
-import '../screens/livreurs/livreur_map.dart'; // Importez le fichier LivreurMap
+import '../screens/livreurs/livreur_map.dart';
 import '../services/manager_service.dart';
 import '../models/manager.dart';
-import './delivery/delivery_planning_screen.dart'; 
-import './delivery/delivery_list_screen.dart'; 
+import './delivery/delivery_planning_screen.dart';
+import './delivery/delivery_list_screen.dart';
+import './discu_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -17,8 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = [
     LivreursScreen(),
     LivreurMap(),
-    DeliveryListScreen(), // Affichage de la carte des livreurs
-    DeliveryPlanningScreen(), 
+    DeliveryListScreen(),
+    DeliveryPlanningScreen(),
+    ManagerChatScreen(), // Ajout de l'écran de discussion
   ];
 
   void _onMenuItemSelected(int index) {
@@ -27,8 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
-   @override
+  @override
   void initState() {
     super.initState();
     _loadCompanyName();
@@ -53,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                 // Affichage de l'information companyName
                 Text(
                   _companyName ?? 'Nom de la société',
                   style: TextStyle(
@@ -78,13 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _onMenuItemSelected(2),  // Index 2 pour Delivery List
+                      onPressed: () => _onMenuItemSelected(2),
                       child: Text(
                         'Livraisons',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
-                     TextButton(
+                    TextButton(
                       onPressed: () => _onMenuItemSelected(3),
                       child: Text(
                         'Planification des Livraisons',
@@ -92,16 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _onMenuItemSelected(0),
+                      onPressed: () => _onMenuItemSelected(4), // Sélection de la discussion
                       child: Text(
-                        'Livreurs',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(1),
-                      child: Text(
-                        'Visualisation sur carte',
+                        'Discussion',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

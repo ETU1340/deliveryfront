@@ -65,16 +65,13 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("dattaaaaaaaa");
-        print(data);
+
         return {
           'success': true,
           'data': data,
         };
       } else {
         final data = jsonDecode(response.body);
-        print("dattaaaaaaaa");
-        print(data);
         return {
           'success': false,
           'message': data['message'],

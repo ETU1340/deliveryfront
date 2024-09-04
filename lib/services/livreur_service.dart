@@ -12,8 +12,6 @@ class LivreurService {
     final response = await http.get(Uri.parse(ApiUrls.livreurs),  headers: <String, String>{
         'x-auth-token': '$token',
       });
-      print("response");
-      print(response.body);
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((livreur) => Livreur.fromJson(livreur)).toList();
