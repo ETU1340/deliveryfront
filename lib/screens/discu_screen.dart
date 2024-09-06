@@ -26,12 +26,15 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
   void initState() {
     super.initState();
     _initializeManagerId();
+
     _discussionService = DiscussionService(baseUrl: ApiUrls.socketUrl);
     _loadLivreurs();
 
       // Écoute les messages reçus en temps réel
   final socketService = Provider.of<SocketService>(context, listen: false);
   socketService.onMessageReceived((messageData) {
+    print('MESSAGE');
+    print(messageData);
     if (_selectedDiscussion != null && messageData['senderId'] == _selectedDiscussion!.delivererId) {
       setState(() {
         _selectedDiscussion!.messages.add(
@@ -48,9 +51,14 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
 
   Future<void> _initializeManagerId() async {
     Manager? manager = await ManagerService.getManagerSession();
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    print("MANAGER_1");
+    print(manager!.id);
+    socketService.joinRoom(manager!.id);
     setState(() {
       managerId = manager!.id; // Assigner l'identifiant du manager
     });
+
   }
 
   Future<void> _loadLivreurs() async {
@@ -69,6 +77,8 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     setState(() {
       _selectedLivreurId = livreur.id;
     });
+
+
 
     try {
       final discussion = await _discussionService.getDiscussion(livreur.id, managerId);

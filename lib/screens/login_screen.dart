@@ -17,7 +17,6 @@ class _ManagerLoginPageState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future<void> _login() async {
-
     if (_formKey.currentState?.validate() ?? false) {
       final userName = _userNameController.text;
       final password = _passwordController.text;
@@ -26,7 +25,7 @@ class _ManagerLoginPageState extends State<LoginScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Connexion avec succes")),
+          SnackBar(content: Text("Connexion avec succès")),
         );
         Navigator.pushNamed(context, '/home');
       } else {
@@ -35,13 +34,12 @@ class _ManagerLoginPageState extends State<LoginScreen> {
         );
       }
     }
-     
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: Colors.blue[50], // Background in light blue
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -49,21 +47,24 @@ class _ManagerLoginPageState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Logo or icon at the top
                 Icon(
                   Icons.account_circle,
                   size: 100,
-                  color: Colors.blue,
+                  color: Colors.blue, // Main color for icon
                 ),
                 SizedBox(height: 20),
+                // Title
                 Text(
                   'Manager Login',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[900],
+                    color: Colors.blue[900], // Darker blue for text
                   ),
                 ),
                 SizedBox(height: 20),
+                // Form starts here
                 Form(
                   key: _formKey,
                   child: Column(
@@ -80,21 +81,27 @@ class _ManagerLoginPageState extends State<LoginScreen> {
                         obscureText: true,
                       ),
                       SizedBox(height: 20),
+                      // Login button
                       CustomButton(
                         text: 'Login',
                         onPressed: _login,
                       ),
                       SizedBox(height: 20),
+                      // Forgot password option
                       TextButton(
                         onPressed: () {
                           // Handle forgot password
                         },
                         child: Text(
                           'Forgot Password?',
-                          style: TextStyle(color: Colors.blue[800]),
+                          style: TextStyle(
+                            color: Colors.blue[800], // Slightly lighter blue
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                       SizedBox(height: 20),
+                      // Register option
                       TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -105,7 +112,10 @@ class _ManagerLoginPageState extends State<LoginScreen> {
                         },
                         child: Text(
                           'Don\'t have an account? Register',
-                          style: TextStyle(color: Colors.blue[800]),
+                          style: TextStyle(
+                            color: Colors.blue[800],
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ],

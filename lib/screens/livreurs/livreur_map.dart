@@ -36,7 +36,7 @@ class _LivreurMapState extends State<LivreurMap> {
 
   @override
   void dispose() {
-    _timer.cancel(); // Arrêter le Timer lorsque le widget est supprimé
+     _timer?.cancel(); // Arrêter le Timer si non nul lorsque le widget est supprimé
     super.dispose();
   }
 
@@ -53,7 +53,6 @@ class _LivreurMapState extends State<LivreurMap> {
     // Mettez à jour les positions des livreurs et livraisons toutes les 10 secondes
     _timer = Timer.periodic(Duration(seconds: 10), (timer) async {
       await _loadLivreurs();
-      await _loadDeliveries();
     });
   }
 

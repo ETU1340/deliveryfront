@@ -12,8 +12,9 @@ class LivreurDetailsModal extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(16.0),
+        width: MediaQuery.of(context).size.width * 0.6, // Agrandir la taille du modal
         child: SingleChildScrollView(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,6 +72,7 @@ class LivreurDetailsModal extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text('Fermer'),
+                       
                       ),
                     ),
                   ],
@@ -90,7 +92,7 @@ class LivreurDetailsModal extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.redAccent,
+                            color: Colors.blueAccent,
                           ),
                         ),
                         SizedBox(height: 10),
@@ -117,6 +119,7 @@ class LivreurDetailsModal extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
           Expanded(
@@ -124,6 +127,7 @@ class LivreurDetailsModal extends StatelessWidget {
               value,
               style: TextStyle(fontSize: 16),
               overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ),
         ],
@@ -134,35 +138,52 @@ class LivreurDetailsModal extends StatelessWidget {
   List<Widget> _buildUnavailablePeriods(List<UnavailablePeriod> periods) {
     List<Widget> widgets = [];
     for (UnavailablePeriod period in periods) {
-
-        widgets.add(Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Du ${_formatDate(period.startDate)} au ${_formatDate(period.endDate)}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+      widgets.add(Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Du ${_formatDate(period.startDate)} au ${_formatDate(period.endDate)}',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
-            Text(
-              'Raison: ${period.reason}',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-              ),
+          ),
+          Text(
+            'Raison: ${period.reason}',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black,
             ),
-            SizedBox(height: 10),
-          ],
-        ));
-      
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  // Action pour valider l'indisponibilité
+                },
+                child: Text('Validé'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Action pour refuser l'indisponibilité
+                },
+                child: Text('Non'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+        ],
+      ));
     }
     return widgets;
   }
 
   String _formatDate(DateTime date) {
-    // Fonction utilitaire pour formater la date
     return '${date.day}/${date.month}/${date.year}';
   }
 }

@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadCompanyName() async {
     Manager? manager = await ManagerService.getManagerSession();
     setState(() {
-      _companyName = manager!.companyName;
+      _companyName = manager?.companyName ?? 'Nom de la société';
     });
   }
 
@@ -48,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Column(
         children: [
+          // Header bar with company name and menu
           Container(
             color: Colors.blue,
             padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -55,64 +56,30 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
+                // Company name on the left
                 Text(
                   _companyName ?? 'Nom de la société',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                // Menu buttons on the right
                 Row(
                   children: [
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(0),
-                      child: Text(
-                        'Dashboard',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(1),
-                      child: Text(
-                        'Profile',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(2),
-                      child: Text(
-                        'Livraisons',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(3),
-                      child: Text(
-                        'Planification des Livraisons',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _onMenuItemSelected(4), // Sélection de la discussion
-                      child: Text(
-                        'Discussion',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        await AuthService.logout(context);
-                      },
-                      child: Text(
-                        'Logout',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                    _buildMenuButton('Livreurs', 0),
+                    _buildMenuButton('Profile', 1),
+                    _buildMenuButton('Livraisons', 2),
+                    _buildMenuButton('Planification', 3),
+                    _buildMenuButton('Discussion', 4),
+                    _buildLogoutButton(),
                   ],
                 ),
               ],
             ),
           ),
+          // Display the selected page
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,
@@ -120,6 +87,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Function to create a reusable menu button
+  Widget _buildMenuButton(String title, int index) {
+    return TextButton(
+      onPressed: () => _onMenuItemSelected(index),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  // Function to create the logout button
+  Widget _buildLogoutButton() {
+    return TextButton(
+      onPressed: () async {
+        await AuthService.logout(context);
+      },
+      child: Text(
+        'Logout',
+        style: TextStyle(
+          color: Colors.redAccent,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

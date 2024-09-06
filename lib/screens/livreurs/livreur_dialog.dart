@@ -11,7 +11,7 @@ class LivreurDialog extends StatefulWidget {
   final Livreur? livreur;
   final Function(Livreur) onSave;
 
- LivreurDialog({
+  LivreurDialog({
     required this.action,
     this.livreur,
     required this.onSave,
@@ -20,6 +20,7 @@ class LivreurDialog extends StatefulWidget {
   @override
   _LivreurDialogState createState() => _LivreurDialogState();
 }
+
 class _LivreurDialogState extends State<LivreurDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
@@ -33,12 +34,11 @@ class _LivreurDialogState extends State<LivreurDialog> {
   String? _imageName; // Variable pour stocker le nom du fichier
 
   List<String> moyensDeTransport = [
-  'Vélo',
-  'Moto',
-  'Voiture',
-  'Camion',
-];
-
+    'Vélo',
+    'Moto',
+    'Voiture',
+    'Camion',
+  ];
 
   @override
   void initState() {
@@ -109,121 +109,147 @@ class _LivreurDialogState extends State<LivreurDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.action == 'create' ? 'Ajouter un livreur' : 'Modifier le livreur'),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un email';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _userNameController,
-                decoration: InputDecoration(labelText: 'Nom d\'utilisateur'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un nom d\'utilisateur';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Nom'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un nom';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'Prénom'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un prénom';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(labelText: 'Adresse'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer une adresse';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Téléphone'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un numéro de téléphone';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedMoyenDeTransport,
-                decoration: InputDecoration(labelText: 'Moyen de Transport'),
-                items: moyensDeTransport.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedMoyenDeTransport = newValue;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez sélectionner un moyen de transport';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              _webImage != null
-                  ? Image.memory(_webImage!)
-                  : Container(),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('Sélectionner une image'),
-              ),
-            ],
+    return Dialog(
+      insetPadding: EdgeInsets.all(20),
+      child: SizedBox(
+        width: 600, // Largeur du modal ajustée
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.action == 'create' ? 'Ajouter un livreur' : 'Modifier le livreur',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 20),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(labelText: 'Email'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un email';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _userNameController,
+                        decoration: InputDecoration(labelText: 'Nom d\'utilisateur'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un nom d\'utilisateur';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(labelText: 'Nom'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un nom';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _firstNameController,
+                        decoration: InputDecoration(labelText: 'Prénom'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un prénom';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: InputDecoration(labelText: 'Adresse'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer une adresse';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(labelText: 'Téléphone'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un numéro de téléphone';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        value: _selectedMoyenDeTransport,
+                        decoration: InputDecoration(labelText: 'Moyen de Transport'),
+                        items: moyensDeTransport.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedMoyenDeTransport = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez sélectionner un moyen de transport';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20),
+                      _webImage != null
+                          ? Image.memory(_webImage!)
+                          : Container(),
+                      ElevatedButton(
+                        onPressed: _pickImage,
+                        child: Text('Sélectionner une image'),
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text('Annuler'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              _saveLivreur(context);
+                            },
+                            child: Text('Enregistrer'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Annuler'),
-        ),
-        TextButton(
-          onPressed: () {
-            _saveLivreur(context);
-          },
-          child: Text('Enregistrer'),
-        ),
-      ],
     );
   }
 }

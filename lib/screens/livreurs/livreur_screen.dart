@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../models/livreur.dart';
 import '../../services/livreur_service.dart';
@@ -8,10 +7,10 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:html' as html; // Import nécessaire pour Flutter Web
 import 'package:csv/csv.dart';
 import 'dart:convert';
-import 'dart:io';
 import '../../services/manager_service.dart';
 import '../../models/manager.dart';
 import 'progress_dialog_screen.dart';
+
 class LivreursScreen extends StatefulWidget {
   @override
   _LivreursScreenState createState() => _LivreursScreenState();
@@ -24,17 +23,15 @@ class _LivreursScreenState extends State<LivreursScreen> {
   List<String> _selectedLivreurs = [];
   String _searchQuery = '';
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  String? _selectedTransport; // Filtre par moyen de transport
+  String? _selectedTransport;
 
-   final List<String> _transports = [
+  final List<String> _transports = [
     'Tous',
     'Voiture',
     'Moto',
     'Vélo',
     'Camion',
-  ]; // Exemple de moyens de transport
-
-
+  ];
 
   @override
   void initState() {
@@ -56,6 +53,7 @@ class _LivreursScreenState extends State<LivreursScreen> {
       );
     }
   }
+
   void _showLivreurDetails(Livreur livreur) {
     showDialog(
       context: context,
@@ -98,83 +96,66 @@ class _LivreursScreenState extends State<LivreursScreen> {
     );
   }
 
-  
+  void _importCsv() {
+    html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = '.csv';
 
-void _importCsv() {
-  // Crée un élément input de type fichier
-  html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-  uploadInput.accept = '.csv'; // Limite le type de fichier à .csv
+    uploadInput.onChange.listen((e) async {
+      final files = uploadInput.files;
+      if (files?.isEmpty ?? true) return;
 
-  uploadInput.onChange.listen((e) async {
-    final files = uploadInput.files;
-    if (files?.isEmpty ?? true) return;
+      final file = files!.first;
+      final reader = html.FileReader();
 
-    final file = files!.first;
-    final reader = html.FileReader();
+      reader.readAsText(file);
 
-    reader.readAsText(file);
-
-    // Afficher le dialogue de progression
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Empêche la fermeture du dialogue en cliquant à l'extérieur
-      builder: (BuildContext context) {
-        return ProgressDialog(); // Widget customisé pour afficher la progression
-      },
-    );
-
-    reader.onLoadEnd.listen((e) async {
-      final csvContent = reader.result as String;
-
-      // Traitement des données CSV
-      final lines = const LineSplitter().convert(csvContent);
-      final fields = lines.map((line) => line.split(',')).toList();
-
-      Manager? manager = await ManagerService.getManagerSession();
-
-      // Ignorer la première ligne (en-têtes de colonne)
-      for (int i = 1; i < fields.length; i++) {
-        final row = fields[i];
-
-        final livreur = Livreur(
-          id: '', // ID sera généré par le backend
-          email: row[0],
-          userName: row[1],
-          name: row[2],
-          firstName: row[3],
-          address: row[4],
-          phone: row[5],
-          moyenDeTransport: row[6],
-          currentLocation: manager!.location, // Configurez ceci si nécessaire
-        );
-
-        // Envoyer chaque livreur au backend
-        await _uploadLivreur(livreur);
-
-        // Mettre à jour la progression dans le dialogue
-        ProgressDialog.updateProgress(i, fields.length - 1);
-      }
-
-      // Fermer le dialogue de progression après l'importation
-      Navigator.of(context).pop();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Importation CSV réussie')),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return ProgressDialog();
+        },
       );
-      await _loadLivreurs();
+
+      reader.onLoadEnd.listen((e) async {
+        final csvContent = reader.result as String;
+        final lines = const LineSplitter().convert(csvContent);
+        final fields = lines.map((line) => line.split(',')).toList();
+        Manager? manager = await ManagerService.getManagerSession();
+
+        for (int i = 1; i < fields.length; i++) {
+          final row = fields[i];
+
+          final livreur = Livreur(
+            id: '',
+            email: row[0],
+            userName: row[1],
+            name: row[2],
+            firstName: row[3],
+            address: row[4],
+            phone: row[5],
+            moyenDeTransport: row[6],
+            currentLocation: manager!.location,
+          );
+
+          await _uploadLivreur(livreur);
+          ProgressDialog.updateProgress(i, fields.length - 1);
+        }
+
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Importation CSV réussie')),
+        );
+        await _loadLivreurs();
+      });
     });
-  });
 
-  // Déclenche le clic pour ouvrir le sélecteur de fichiers
-  uploadInput.click();
-}
+    uploadInput.click();
+  }
 
-
-  // Fonction pour envoyer les données du livreur au backend
   Future<void> _uploadLivreur(Livreur livreur) async {
     try {
-        await LivreurService.createLivreur(livreur,null,null);
-
+      await LivreurService.createLivreur(livreur, null, null);
     } catch (e) {
       print('Erreur lors de l\'importation: $e');
     }
@@ -206,39 +187,6 @@ void _importCsv() {
     }
   }
 
-   void _filterByTransport(String? transport) {
-    setState(() {
-      _selectedTransport = transport;
-      _filterLivreurs(_searchQuery);
-    });
-  }
-
-  Future<void> _confirmDeleteSelectedLivreurs() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Confirmation de la suppression en masse'),
-          content: Text('Êtes-vous sûr de vouloir supprimer les livreurs sélectionnés ?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Supprimer'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true) {
-      _deleteSelectedLivreurs();
-    }
-  }
-
   void _deleteLivreur(String id) async {
     try {
       await LivreurService.deleteLivreur(id);
@@ -246,22 +194,6 @@ void _importCsv() {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec de la suppression du livreur')),
-      );
-    }
-  }
-
-  void _deleteSelectedLivreurs() async {
-    try {
-      for (var id in _selectedLivreurs) {
-        await LivreurService.deleteLivreur(id);
-      }
-      setState(() {
-        _selectedLivreurs.clear();
-      });
-      await _loadLivreurs();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Échec de la suppression des livreurs sélectionnés')),
       );
     }
   }
@@ -292,14 +224,9 @@ void _importCsv() {
             icon: Icon(Icons.add),
             onPressed: () => _createOrUpdateLivreur('create'),
           ),
-          if (_selectedLivreurs.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: _confirmDeleteSelectedLivreurs,
-            ),
           IconButton(
             icon: Icon(Icons.upload_file),
-            onPressed: _importCsv, // Ajouter le bouton pour importer CSV
+            onPressed: _importCsv,
           ),
         ],
       ),
@@ -335,7 +262,12 @@ void _importCsv() {
                         child: Text(transport),
                       );
                     }).toList(),
-                    onChanged: _filterByTransport,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedTransport = value;
+                      });
+                      _filterLivreurs(_searchQuery);
+                    },
                   ),
                 ),
               ],
@@ -367,11 +299,9 @@ void _importCsv() {
                     selectedLivreurs: _selectedLivreurs,
                     onDelete: _confirmDeleteLivreur,
                     onEdit: (livreur) => _createOrUpdateLivreur('update', livreur),
-                    onDetails: (livreur) =>_showLivreurDetails(livreur),
+                    onDetails: _showLivreurDetails,
                     onSelectionChanged: () {
-                      setState(() {
-                        // Met à jour l'interface pour afficher le bouton de suppression en masse
-                      });
+                      setState(() {});
                     },
                   ),
                 ),
@@ -383,7 +313,6 @@ void _importCsv() {
     );
   }
 }
-
 
 class _LivreurDataSource extends DataTableSource {
   final List<Livreur> livreurs;
@@ -401,8 +330,6 @@ class _LivreurDataSource extends DataTableSource {
     required this.onDetails,
     required this.onSelectionChanged,
   });
-
-
 
   @override
   DataRow getRow(int index) {
@@ -428,7 +355,7 @@ class _LivreurDataSource extends DataTableSource {
         DataCell(Text(livreur.moyenDeTransport)),
         DataCell(Row(
           children: [
-             IconButton(
+            IconButton(
               icon: Icon(Icons.visibility, color: Colors.green),
               onPressed: () => onDetails(livreur),
             ),
@@ -445,9 +372,6 @@ class _LivreurDataSource extends DataTableSource {
       ],
     );
   }
-  
-
-
 
   @override
   bool get isRowCountApproximate => false;
