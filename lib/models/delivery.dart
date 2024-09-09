@@ -10,7 +10,7 @@ class Delivery {
   final String reference;
   final Location deliveryAddress;
   final DateTime deliveryDateTime;  // Combined DateTime field
-  final String deliveryType;
+  final DateTime deliveryEndDateTime;
   final String status;
   final String livreurId;
   final Livreur? livreur;
@@ -25,7 +25,7 @@ class Delivery {
     required this.reference,
     required this.deliveryAddress,
     required this.deliveryDateTime,  // Combined DateTime field
-    required this.deliveryType,
+    required this.deliveryEndDateTime,
     required this.status,
     required this.livreurId,
     this.livreur,
@@ -41,8 +41,8 @@ factory Delivery.fromJson(Map<String, dynamic> json) {
     validationCode: json['validationCode'] ?? '',
     reference: json['reference'] ?? '',
     deliveryAddress: Location.fromJson(json['deliveryAddress'] ?? {}),
-    deliveryDateTime: DateTime.parse(json['deliveryDateTime'] ?? ''),
-    deliveryType: json['deliveryType'] ?? '',
+    deliveryDateTime: DateTime.parse(json['deliveryDateTimeBegin'] ?? ''),
+    deliveryEndDateTime: json['deliveryDateTimeEnd'] ?? '',
     status: json['status'] ?? '',
     livreurId: json['livreurId'] != null && json['livreurId'] is Map<String, dynamic> 
         ? (json['livreurId']['_id'] ?? '')
@@ -65,7 +65,7 @@ factory Delivery.fromJson(Map<String, dynamic> json) {
       'reference': reference,
       'deliveryAddress': deliveryAddress.toJson(),
       'deliveryDateTime': deliveryDateTime.toIso8601String(),  // Combined DateTime field
-      'deliveryType': deliveryType,
+      'deliveryEndDateTime': deliveryEndDateTime.toIso8601String(),
       'status': status,
       'livreurId': livreurId,
       'livreur': livreur?.toJson(),  // Serializing the nested Livreur object

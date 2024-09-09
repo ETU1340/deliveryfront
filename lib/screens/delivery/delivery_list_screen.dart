@@ -43,11 +43,10 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
     setState(() {
       _filteredDeliveries = _deliveries.where((delivery) {
         bool matchesSearchQuery = delivery.clientName.toLowerCase().contains(_searchQuery.toLowerCase());
-        bool matchesType = _selectedType == null || delivery.deliveryType == _selectedType;
         bool matchesStatus = _selectedStatus == null || delivery.status == _selectedStatus;
         bool matchesDate = _selectedDate == null || delivery.deliveryDateTime.toString().substring(0, 10) == _selectedDate.toString().substring(0, 10);
 
-        return matchesSearchQuery && matchesType && matchesStatus  && matchesDate;
+        return matchesSearchQuery && matchesStatus  && matchesDate;
       }).toList();
     });
   }
@@ -208,7 +207,6 @@ class _DeliveryDataSource extends DataTableSource {
       cells: [
         DataCell(Text(delivery.clientName)),
         DataCell(Text(delivery.deliveryDateTime.toString().substring(0, 10))),
-        DataCell(Text(delivery.deliveryType)),
         DataCell(Text(delivery.status)),
         DataCell(Text(delivery.livreur!.name)),
         DataCell(Row(

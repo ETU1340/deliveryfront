@@ -30,35 +30,30 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     _discussionService = DiscussionService(baseUrl: ApiUrls.socketUrl);
     _loadLivreurs();
 
-      // Écoute les messages reçus en temps réel
-  final socketService = Provider.of<SocketService>(context, listen: false);
-  socketService.onMessageReceived((messageData) {
-    print('MESSAGE');
-    print(messageData);
-    if (_selectedDiscussion != null && messageData['senderId'] == _selectedDiscussion!.delivererId) {
-      setState(() {
-        _selectedDiscussion!.messages.add(
-          Message(
-            senderId: messageData['senderId'],
-            message: messageData['message'],
-            timestamp: DateTime.parse(messageData['timestamp']),
-          ),
-        );
-      });
-    }
-  });
+    // Écoute les messages reçus en temps réel
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    socketService.onMessageReceived((messageData) {
+      if (_selectedDiscussion != null && messageData['senderId'] == _selectedDiscussion!.delivererId) {
+        setState(() {
+          _selectedDiscussion!.messages.add(
+            Message(
+              senderId: messageData['senderId'],
+              message: messageData['message'],
+              timestamp: DateTime.parse(messageData['timestamp']),
+            ),
+          );
+        });
+      }
+    });
   }
 
   Future<void> _initializeManagerId() async {
     Manager? manager = await ManagerService.getManagerSession();
     final socketService = Provider.of<SocketService>(context, listen: false);
-    print("MANAGER_1");
-    print(manager!.id);
     socketService.joinRoom(manager!.id);
     setState(() {
-      managerId = manager!.id; // Assigner l'identifiant du manager
+      managerId = manager.id;
     });
-
   }
 
   Future<void> _loadLivreurs() async {
@@ -68,7 +63,6 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     });
 
     if (_livreurs.isNotEmpty) {
-      // Charger la discussion du premier livreur par défaut
       _selectLivreur(_livreurs[0]);
     }
   }
@@ -77,8 +71,6 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     setState(() {
       _selectedLivreurId = livreur.id;
     });
-
-
 
     try {
       final discussion = await _discussionService.getDiscussion(livreur.id, managerId);
@@ -125,7 +117,11 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Discussions avec les Livreurs'),
+        title: Text(
+          'Discussions avec les Livreurs',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Row(
         children: [
@@ -139,12 +135,11 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                 final livreur = _livreurs[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: NetworkImage( 'https://via.placeholder.com/150'),
+                    backgroundImage: NetworkImage('https://via.placeholder.com/150'),
                   ),
                   title: Text(livreur.name),
-                  subtitle: Text(livreur.email), // Exemple d'email comme sous-titre
+                  subtitle: Text(livreur.email),
                   onTap: () => _selectLivreur(livreur),
-                  contentPadding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
                   tileColor: _selectedLivreurId == livreur.id ? Colors.blue[50] : null,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -160,9 +155,42 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
           // Discussion
           Expanded(
             child: _selectedDiscussion == null
-                ? Center(child: Text('Sélectionnez un livreur pour voir la discussion'))
+                ? Center(
+                    child: Text(
+                      'Sélectionnez un livreur pour voir la discussion',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  )
                 : Column(
                     children: [
+                      // Affichage des infos du livreur sélectionné
+                      if (_selectedLivreurId != null)
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                              ),
+                              SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _livreurs.firstWhere((l) => l.id == _selectedLivreurId).name,
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                  ),
+                                  Text(
+                                    _livreurs.firstWhere((l) => l.id == _selectedLivreurId).email,
+                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      Divider(),
                       Expanded(
                         child: _selectedDiscussion!.messages.isEmpty
                             ? Center(child: Text('Aucun message dans cette discussion'))
@@ -212,7 +240,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.send),
+                              icon: Icon(Icons.send, color: Colors.blueAccent),
                               onPressed: _sendMessage,
                             ),
                           ],
