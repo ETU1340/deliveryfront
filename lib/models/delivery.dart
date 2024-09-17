@@ -42,7 +42,7 @@ factory Delivery.fromJson(Map<String, dynamic> json) {
     reference: json['reference'] ?? '',
     deliveryAddress: Location.fromJson(json['deliveryAddress'] ?? {}),
     deliveryDateTime: DateTime.parse(json['deliveryDateTimeBegin'] ?? ''),
-    deliveryEndDateTime: json['deliveryDateTimeEnd'] ?? '',
+    deliveryEndDateTime:  DateTime.parse(json['deliveryDateTimeEnd'] ?? ''),
     status: json['status'] ?? '',
     livreurId: json['livreurId'] != null && json['livreurId'] is Map<String, dynamic> 
         ? (json['livreurId']['_id'] ?? '')

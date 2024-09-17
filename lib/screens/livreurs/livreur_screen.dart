@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/livreur.dart';
 import '../../services/livreur_service.dart';
 import './livreur_dialog.dart';
@@ -46,6 +47,7 @@ class _LivreursScreenState extends State<LivreursScreen> {
       setState(() {
         _livreurs = livreurs;
         _filteredLivreurs = livreurs;
+        _selectedLivreurs.clear(); // Clear selection after loading
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,24 +216,80 @@ class _LivreursScreenState extends State<LivreursScreen> {
     });
   }
 
+  // Nouvelle fonction pour confirmer la suppression en masse
+  Future<void> _confirmDeleteSelectedLivreurs() async {
+    if (_selectedLivreurs.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirmation de la suppression'),
+          content: Text('Êtes-vous sûr de vouloir supprimer les livreurs sélectionnés ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteSelectedLivreurs();
+    }
+  }
+
+  // Nouvelle fonction pour supprimer en masse
+  Future<void> _deleteSelectedLivreurs() async {
+    try {
+      for (String id in _selectedLivreurs) {
+        await LivreurService.deleteLivreur(id);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Livreurs supprimés avec succès')),
+      );
+      await _loadLivreurs();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec de la suppression des livreurs')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Livreurs'),
         actions: [
+          // Afficher le bouton de suppression en masse uniquement si des livreurs sont sélectionnés
+          if (_selectedLivreurs.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: _confirmDeleteSelectedLivreurs,
+              tooltip: 'Supprimer les sélectionnés',
+            ),
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () => _createOrUpdateLivreur('create'),
+            tooltip: 'Ajouter un livreur',
           ),
           IconButton(
             icon: Icon(Icons.upload_file),
             onPressed: _importCsv,
+            tooltip: 'Importer des livreurs depuis un CSV',
           ),
         ],
       ),
       body: Column(
         children: [
+          // Filtres de recherche et de transport
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -273,6 +331,7 @@ class _LivreursScreenState extends State<LivreursScreen> {
               ],
             ),
           ),
+          // Liste des livreurs avec pagination
           Expanded(
             child: SingleChildScrollView(
               child: Container(
@@ -358,15 +417,18 @@ class _LivreurDataSource extends DataTableSource {
             IconButton(
               icon: Icon(Icons.visibility, color: Colors.green),
               onPressed: () => onDetails(livreur),
+              tooltip: 'Voir les détails',
             ),
             IconButton(
               icon: Icon(Icons.edit, color: Colors.blue),
               onPressed: () => onEdit(livreur),
+              tooltip: 'Modifier',
             ),
             IconButton(
               icon: Icon(Icons.delete, color: Colors.red),
               onPressed: () => onDelete(livreur.id),
-            )
+              tooltip: 'Supprimer',
+            ),
           ],
         )),
       ],

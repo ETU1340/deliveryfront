@@ -19,7 +19,6 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _startDateController = TextEditingController();
-  final _endDateController = TextEditingController();
   final _clientNameController = TextEditingController();
   final _clientSurnameController = TextEditingController();
   final _clientEmailController = TextEditingController();
@@ -30,6 +29,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
   List<Livreur> _livreurs = [];
   late LatLng deptLocation;
   bool isLoadingLivreurs = true;
+  Duration? _selectedDuration;
 
   @override
   void initState() {
@@ -102,7 +102,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
   Future<void> _planDelivery() async {
     if (_formKey.currentState?.validate() ?? false) {
       DateTime deliveryStartDate = DateTime.parse(_startDateController.text);
-      DateTime deliveryEndDate = DateTime.parse(_endDateController.text);
+      DateTime deliveryEndDate = deliveryStartDate.add(_selectedDuration!); // Calcul de la date de fin
       Manager? manager = await ManagerService.getManagerSession();
 
       final delivery = Delivery(
@@ -118,7 +118,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
         ),
         deliveryDateTime: deliveryStartDate,
         deliveryEndDateTime: deliveryEndDate,
-        status: 'Pending',
+        status: 'En attente',
         livreurId: _selectedLivreur!.id,
         managerId: manager!.id,
       );
@@ -134,6 +134,79 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
           SnackBar(content: Text('Échec de la planification de la livraison')),
         );
       }
+    }
+  }
+
+  void _selectDuration(BuildContext context) async {
+    final pickedDuration = await showDialog<Duration>(
+      context: context,
+      builder: (context) {
+        Duration selectedDuration = Duration(hours: 1); // Durée par défaut
+        return AlertDialog(
+          title: Text('Sélectionnez la durée de la livraison'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Heures'),
+              DropdownButton<int>(
+                value: selectedDuration.inHours,
+                onChanged: (int? newHours) {
+                  if (newHours != null) {
+                    setState(() {
+                      selectedDuration = Duration(hours: newHours, minutes: selectedDuration.inMinutes % 60);
+                    });
+                  }
+                },
+                items: List.generate(12, (index) => index + 1)
+                    .map<DropdownMenuItem<int>>((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text('$value heure(s)'),
+                  );
+                }).toList(),
+              ),
+              Text('Minutes'),
+              DropdownButton<int>(
+                value: selectedDuration.inMinutes % 60,
+                onChanged: (int? newMinutes) {
+                  if (newMinutes != null) {
+                    setState(() {
+                      selectedDuration = Duration(hours: selectedDuration.inHours, minutes: newMinutes);
+                    });
+                  }
+                },
+                items: List.generate(60, (index) => index)
+                    .map<DropdownMenuItem<int>>((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text('$value minute(s)'),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirmer'),
+              onPressed: () {
+                Navigator.of(context).pop(selectedDuration);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (pickedDuration != null) {
+      setState(() {
+        _selectedDuration = pickedDuration;
+      });
     }
   }
 
@@ -308,47 +381,14 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                     ),
                     SizedBox(width: 20),
                     Expanded(
-                      child: TextFormField(
-                        controller: _endDateController,
-                        decoration: InputDecoration(
-                          labelText: 'Date et Heure fin',
-                          border: OutlineInputBorder(),
+                      child: TextButton(
+                        onPressed: () => _selectDuration(context), // Ouvrir le modal pour sélectionner la durée
+                        child: Text(
+                          _selectedDuration != null
+                              ? 'Durée: ${_selectedDuration!.inHours} heures ${_selectedDuration!.inMinutes % 60} minutes'
+                              : 'Sélectionner la durée',
+                          style: TextStyle(color: Colors.blue),
                         ),
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2100),
-                          );
-
-                          if (pickedDate != null) {
-                            TimeOfDay? pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            );
-
-                            if (pickedTime != null) {
-                              DateTime finalDateTime = DateTime(
-                                pickedDate.year,
-                                pickedDate.month,
-                                pickedDate.day,
-                                pickedTime.hour,
-                                pickedTime.minute,
-                              );
-                              setState(() {
-                                _endDateController.text = finalDateTime.toString();
-                              });
-                            }
-                          }
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer la date et heure de fin';
-                          }
-                          return null;
-                        },
                       ),
                     ),
                   ],
