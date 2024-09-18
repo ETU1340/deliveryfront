@@ -4,6 +4,7 @@ import '../models/discussion.dart';
 import '../models/manager.dart';
 import '../services/socket_service.dart';
 import '../models/livreur.dart';
+import 'package:intl/intl.dart'; // Pour formater l'heure
 import 'package:provider/provider.dart';
 import '../../services/livreur_service.dart';
 import '../../services/manager_service.dart';
@@ -21,6 +22,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
   Discussion? _selectedDiscussion;
   String? _selectedLivreurId;
   String managerId = "";
+  final DateFormat _timeFormat = DateFormat('HH:mm'); // Format d'heure
 
   @override
   void initState() {
@@ -218,7 +220,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                                     subtitle: Align(
                                       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
                                       child: Text(
-                                        message.timestamp.toIso8601String(),
+                                        _timeFormat.format(message.timestamp),
                                         style: TextStyle(color: Colors.grey, fontSize: 10),
                                       ),
                                     ),

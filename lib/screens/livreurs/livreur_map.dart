@@ -10,7 +10,6 @@ import '../../services/manager_service.dart';
 import '../../models/manager.dart';
 import 'dart:async';
 import '../../models/location.dart';
-
 class LivreurMap extends StatefulWidget {
   @override
   _LivreurMapState createState() => _LivreurMapState();
@@ -18,10 +17,10 @@ class LivreurMap extends StatefulWidget {
 
 class _LivreurMapState extends State<LivreurMap> {
   late LatLng deptLocation;
-  late Timer _timer; // Le Timer pour déclencher les mises à jour
+  late Timer _timer;
   final PopupController _popupLayerController = PopupController();
   List<Livreur> _livreurs = [];
-  List<Delivery> _deliveries = []; // Liste des livraisons
+  List<Delivery> _deliveries = [];
   bool _showLivreurs = true;
   bool _showDeliveries = false;
 
@@ -31,12 +30,12 @@ class _LivreurMapState extends State<LivreurMap> {
     _loadCompanyLocation();
     _loadLivreurs();
     _loadDeliveries();
-    _startLocationUpdates(); // Commencer les mises à jour
+    _startLocationUpdates();
   }
 
   @override
   void dispose() {
-     _timer?.cancel(); // Arrêter le Timer si non nul lorsque le widget est supprimé
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -50,7 +49,6 @@ class _LivreurMapState extends State<LivreurMap> {
   }
 
   void _startLocationUpdates() {
-    // Mettez à jour les positions des livreurs et livraisons toutes les 10 secondes
     _timer = Timer.periodic(Duration(seconds: 10), (timer) async {
       await _loadLivreurs();
     });
@@ -63,7 +61,6 @@ class _LivreurMapState extends State<LivreurMap> {
         _livreurs = livreurs;
       });
     } catch (e) {
-      // Gestion des erreurs
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du chargement des livreurs')),
       );
@@ -77,7 +74,6 @@ class _LivreurMapState extends State<LivreurMap> {
         _deliveries = deliveries;
       });
     } catch (e) {
-      // Gestion des erreurs
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du chargement des livraisons')),
       );
@@ -212,155 +208,258 @@ class _LivreurMapState extends State<LivreurMap> {
                   markerTapBehavior: MarkerTapBehavior.togglePopup(),
                   popupDisplayOptions: PopupDisplayOptions(
                     builder: (BuildContext context, Marker marker) {
+                      // Déterminer si le marker correspond à un livreur
                       final livreur = _livreurs.firstWhere(
                           (livreur) =>
-                              LatLng(
-                                livreur.currentLocation!.latitude,
-                                livreur.currentLocation!.longitude,
-                              ) ==
-                              marker.point,
-                          orElse: () => Livreur(id:'',userName:'',address:'',phone:'',firstName:'',name: '', email: '', moyenDeTransport: '', currentLocation: null));
+                              livreur.currentLocation != null &&
+                              _arePointsEqual(
+                                LatLng(
+                                  livreur.currentLocation!.latitude,
+                                  livreur.currentLocation!.longitude,
+                                ),
+                                marker.point,
+                              ),
+                          orElse: () => Livreur(
+                              id: '',
+                              userName: '',
+                              address: '',
+                              phone: '',
+                              firstName: '',
+                              name: '',
+                              email: '',
+                              moyenDeTransport: '',
+                              currentLocation: null));
 
+                      if (livreur.id.isNotEmpty) {
+                        // Récupérer la livraison en cours pour ce livreur
+                        final Delivery? currentDelivery = _getCurrentDeliveryForLivreur(livreur);
+
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 8,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${livreur.name} ${livreur.firstName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Transport: ${livreur.moyenDeTransport}',
+                                  style: TextStyle(color: Colors.grey[700]),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Téléphone: ${livreur.phone}',
+                                  style: TextStyle(color: Colors.grey[700]),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Livraison en cours:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text(
+                                  currentDelivery?.reference ?? "Aucune",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: currentDelivery != null ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Si le marker correspond à une livraison
                       final delivery = _deliveries.firstWhere(
                           (delivery) =>
-                              LatLng(
-                                delivery.deliveryAddress.latitude,
-                                delivery.deliveryAddress.longitude,
-                              ) ==
-                              marker.point,
+                              _arePointsEqual(
+                                LatLng(
+                                  delivery.deliveryAddress.latitude,
+                                  delivery.deliveryAddress.longitude,
+                                ),
+                                marker.point,
+                              ),
                           orElse: () => Delivery(
-                            id:'',
-                            clientName: '',
-                            clientSurname: '',
-                            clientEmail: '',
-                            validationCode: '',
-                            reference: '',
-                            deliveryAddress: Location(latitude: 0, longitude: 0),
-                            deliveryDateTime: DateTime.now(),
-                            deliveryEndDateTime: DateTime.now(),
-                            status: 'Pending',
-                            livreurId: '',
-                            managerId: '',
-                          ));
+                                id: '',
+                                clientName: '',
+                                clientSurname: '',
+                                clientEmail: '',
+                                validationCode: '',
+                                reference: '',
+                                deliveryAddress: Location(latitude: 0, longitude: 0),
+                                deliveryDateTime: DateTime.now(),
+                                deliveryEndDateTime: DateTime.now(),
+                                status: 'Pending',
+                                livreurId: '',
+                                managerId: '',
+                              ));
 
-                      return livreur.name.isNotEmpty
+                      return delivery.clientName.isNotEmpty
                           ? Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 8,
                               child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(16.0),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${livreur.name} ${livreur.firstName}',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      '${delivery.clientName}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
                                     ),
-                                    Text('Transport: ${livreur.moyenDeTransport}'),
-                                    Text('Télephone : ${livreur.phone}'),
-                                    Text('Livraison en cours : LIV-054'),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Téléphone: ${delivery.clientSurname}',
+                                      style: TextStyle(color: Colors.grey[700]),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Email: ${delivery.clientEmail}',
+                                      style: TextStyle(color: Colors.grey[700]),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Référence: ${delivery.reference}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Statut: ${delivery.status}',
+                                      style: TextStyle(
+                                        color: _getStatusColor(delivery.status),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             )
-                          : Card(
-  child: Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '${delivery.clientName}',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Text('Télephone: ${delivery.clientSurname}'),
-        Text('Email: ${delivery.clientEmail}'),
-        Text('Reference: ${delivery.reference}'),
-        // Styliser le statut
-        Text(
-          ' ${delivery.status}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _getStatusColor(delivery.status), // Couleur du texte en fonction du statut
-          ),
-        ),
-      ],
-    ),
-  ),
-);
-
-// Fonction pour obtenir la couleur en fonction du statut
-
+                          : SizedBox.shrink();
                     },
                   ),
                 ),
               ),
             ],
           ),
- Positioned(
-  bottom: 10,
-  right: 10,
-  child: Container(
-    color: Colors.white,
-    padding: EdgeInsets.all(8.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.pedal_bike, color: Colors.blue),
-            SizedBox(width: 5),
-            Text('Vélo', style: TextStyle(color: Colors.blue)),
-          ],
-        ),
-        Row(
-          children: [
-            Icon(Icons.delivery_dining, color: Colors.blue),
-            SizedBox(width: 5),
-            Text('Moto', style: TextStyle(color: Colors.blue)),
-          ],
-        ),
-        Row(
-          children: [
-            Icon(Icons.directions_car, color: Colors.blue),
-            SizedBox(width: 5),
-            Text('Voiture', style: TextStyle(color: Colors.blue)),
-          ],
-        ),
-        Row(
-          children: [
-            Icon(Icons.local_shipping, color: Colors.blue),
-            SizedBox(width: 5),
-            Text('Camion', style: TextStyle(color: Colors.blue)),
-          ],
-        ),
-        Row(
-          children: [
-            Icon(Icons.person_pin_circle, color: Colors.red),
-            SizedBox(width: 5),
-            Text('Point de livraison', style: TextStyle(color: Colors.red)),
-          ],
-        ),
-      ],
-    ),
-  ),
-),
-
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: Container(
+              color: Colors.white,
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.pedal_bike, color: Colors.blue),
+                      SizedBox(width: 5),
+                      Text('Vélo', style: TextStyle(color: Colors.blue)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.delivery_dining, color: Colors.blue),
+                      SizedBox(width: 5),
+                      Text('Moto', style: TextStyle(color: Colors.blue)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.directions_car, color: Colors.blue),
+                      SizedBox(width: 5),
+                      Text('Voiture', style: TextStyle(color: Colors.blue)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.local_shipping, color: Colors.blue),
+                      SizedBox(width: 5),
+                      Text('Camion', style: TextStyle(color: Colors.blue)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.person_pin_circle, color: Colors.red),
+                      SizedBox(width: 5),
+                      Text('Point de livraison', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Color _getStatusColor(String status) {
-  switch (status) {
-    case 'En attente':
-      return Colors.orange; // Couleur pour le statut "En attente"
-    case 'En cours':
-      return Colors.blue; // Couleur pour le statut "En cours"
-    case 'Terminé':
-      return Colors.green; // Couleur pour le statut "Terminé"
-    case 'Annulé':
-      return Colors.red; // Couleur pour le statut "Annulé"
-    default:
-      return Colors.black; // Couleur par défaut si le statut est inconnu
+  bool _arePointsEqual(LatLng point1, LatLng point2, {double tolerance = 0.0001}) {
+    return (point1.latitude - point2.latitude).abs() < tolerance &&
+        (point1.longitude - point2.longitude).abs() < tolerance;
   }
-}
+
+  Delivery? _getCurrentDeliveryForLivreur(Livreur livreur) {
+    final now = DateTime.now().toUtc().add(Duration(hours: 3));
+    print('--- Vérification des livraisons pour le livreur: ${livreur.name} ${livreur.firstName} ---');
+    print('Heure actuelle ajustée (UTC+3): $now');
+
+    for (var delivery in _deliveries) {
+      final deliveryStartUtc = delivery.deliveryDateTime.toUtc();
+      final deliveryEndUtc = delivery.deliveryEndDateTime.toUtc();
+
+      print('Évaluation de la livraison: ${delivery.reference} | Statut: ${delivery.status} | '
+            'ID Livreur: ${delivery.livreurId} | Début (UTC): $deliveryStartUtc | Fin (UTC): $deliveryEndUtc');
+
+      if (delivery.livreurId == livreur.id &&
+          delivery.status == 'En cours' &&
+          deliveryStartUtc.isBefore(now) &&
+          deliveryEndUtc.isAfter(now)) {
+        print('>>> Livraison en cours trouvée: ${delivery.reference}');
+        return delivery;
+      }
+    }
+
+    print('Aucune livraison en cours trouvée pour le livreur: ${livreur.id}');
+    return null;
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'En attente':
+        return Colors.orange;
+      case 'En cours':
+        return Colors.blue;
+      case 'Terminé':
+        return Colors.green;
+      case 'Annulé':
+        return Colors.red;
+      default:
+        return Colors.black;
+    }
+  }
 }

@@ -45,6 +45,7 @@ static Future<List<Delivery>> getDeliveries() async {
 }
 
 
+
   static Future<bool> updateDelivery(Delivery delivery) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
@@ -60,6 +61,7 @@ static Future<List<Delivery>> getDeliveries() async {
 
     return response.statusCode == 200;
   }
+  
  static Future<bool> updateDeliveryStatus(String deliveryId, String status) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');

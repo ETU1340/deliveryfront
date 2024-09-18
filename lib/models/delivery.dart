@@ -11,7 +11,7 @@ class Delivery {
   final Location deliveryAddress;
   final DateTime deliveryDateTime;  // Combined DateTime field
   final DateTime deliveryEndDateTime;
-  final String status;
+  late final String status;
   final String livreurId;
   final Livreur? livreur;
   final String managerId;

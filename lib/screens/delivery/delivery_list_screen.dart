@@ -48,6 +48,20 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
     });
   }
 
+  void _reloadDeliveries() async {
+    try {
+      _deliveries = await DeliveryService.getDeliveries();
+      setState(() {
+        _filteredDeliveries = _deliveries;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du rechargement des livraisons')),
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,6 +98,7 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
                     source: _DeliveryDataSource(
                       deliveries: _filteredDeliveries,
                       context: context,
+                      onUpdate: _reloadDeliveries,
                     ),
                   ),
                 ),
@@ -164,11 +179,14 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
       ],
     );
   }
-}class _DeliveryDataSource extends DataTableSource {
+}
+
+class _DeliveryDataSource extends DataTableSource {
   final List<Delivery> deliveries;
   final BuildContext context;
+  final VoidCallback onUpdate;
 
-  _DeliveryDataSource({required this.deliveries, required this.context});
+  _DeliveryDataSource({required this.deliveries, required this.context, required this.onUpdate});
 
   @override
   DataRow getRow(int index) {
@@ -334,8 +352,8 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
       ),
     );
   }
-
-  // Fonction pour valider la livraison et mettre à jour la ligne immédiatement
+  
+  // Validation de la livraison et rechargement
   void _validateDelivery(BuildContext context, Delivery delivery, int index) {
     final TextEditingController _codeController = TextEditingController();
 
@@ -365,15 +383,20 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
                 if (_codeController.text == delivery.validationCode) {
                   final success = await DeliveryService.updateDeliveryStatus(delivery.id, 'Terminé');
                   if (success) {
-                    // Mise à jour immédiate de l'état
-                    notifyListeners(); // Rafraîchir les données affichées
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Livraison validée avec succès')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Livraison validée avec succès')),
+                    );
+                    onUpdate(); // Appeler la fonction de mise à jour
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de la validation')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur lors de la validation')),
+                    );
                   }
                   Navigator.of(context).pop();
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Code de validation incorrect')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Code de validation incorrect')),
+                  );
                 }
               },
               child: Text('Valider'),
@@ -384,7 +407,7 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
     );
   }
 
-  // Fonction pour annuler la livraison et mettre à jour la ligne immédiatement
+  // Annuler la livraison et recharger la liste
   void _cancelDelivery(BuildContext context, Delivery delivery, int index) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -409,14 +432,18 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
     if (confirm == true) {
       final success = await DeliveryService.updateDeliveryStatus(delivery.id, 'Annulé');
       if (success) {
-        // Mise à jour immédiate de l'état
-        notifyListeners(); // Rafraîchir les données affichées
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Livraison annulée avec succès')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Livraison annulée avec succès')),
+        );
+        onUpdate(); // Appeler la fonction de mise à jour après annulation
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de l\'annulation')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de l\'annulation')),
+        );
       }
     }
   }
+
 
   @override
   bool get isRowCountApproximate => false;
