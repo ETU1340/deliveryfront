@@ -8,7 +8,6 @@ import '../../services/manager_service.dart';
 import '../../services/delivery_service.dart';
 import '../../models/delivery.dart';
 import '../../models/location.dart';
-import '../../services/manager_service.dart';
 
 class DeliveryPlanningScreen extends StatefulWidget {
   @override
@@ -30,11 +29,16 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
   late LatLng deptLocation;
   bool isLoadingLivreurs = true;
   Duration? _selectedDuration;
+  
+  // Nouveau : Variable pour le type de transport sélectionné
+  String? _selectedTransportType;
+
+  // Liste des types de transport
+  final List<String> transportTypes = ['Tous', 'Vélo', 'Moto', 'Voiture', 'Camion'];
 
   @override
   void initState() {
     super.initState();
-    _loadLivreurs();
     _loadCompanyLocation();
   }
 
@@ -47,15 +51,29 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
     }
   }
 
-  Future<void> _loadLivreurs() async {
+  Future<void> _loadLivreurs(DateTime startDate, DateTime endDate) async {
+    setState(() {
+      isLoadingLivreurs = true; // Pour gérer l'état de chargement
+    });
+    Manager? manager = await ManagerService.getManagerSession();
     try {
-      _livreurs = await LivreurService.getLivreurs();
+      // Appeler le service avec les dates de début et de fin
+      _livreurs = await LivreurService.getLivreursDisponibles(
+          manager!.id, startDate, endDate);
+
+      // Si un type de transport est sélectionné, filtrer les livreurs
+      if (_selectedTransportType != null && _selectedTransportType != 'Tous') {
+        _livreurs = _livreurs.where((livreur) {
+          return livreur.moyenDeTransport == _selectedTransportType;
+        }).toList();
+      }
+
       setState(() {
         isLoadingLivreurs = false;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Échec du chargement des livreurs')),
+        SnackBar(content: Text('Échec du chargement des livreurs disponibles')),
       );
       setState(() {
         isLoadingLivreurs = false;
@@ -73,7 +91,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
             height: 400,
             child: FlutterMap(
               options: MapOptions(
-                center: deptLocation, 
+                center: deptLocation,
                 zoom: 13.0,
                 onTap: (_, point) {
                   Navigator.pop(context, point);
@@ -207,6 +225,13 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
       setState(() {
         _selectedDuration = pickedDuration;
       });
+
+      // Si la date de début est déjà sélectionnée, charger les livreurs
+      if (_startDateController.text.isNotEmpty) {
+        DateTime startDate = DateTime.parse(_startDateController.text);
+        DateTime endDate = startDate.add(_selectedDuration!);
+        _loadLivreurs(startDate, endDate);
+      }
     }
   }
 
@@ -313,20 +338,20 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                               return null;
                             },
                           ),
-                                   SizedBox(height: 20),
+                          SizedBox(height: 20),
                           TextFormField(
-                          controller: _referenceController,
-                          decoration: InputDecoration(
-                            labelText: 'Référence de livraison',
-                            border: OutlineInputBorder(),
+                            controller: _referenceController,
+                            decoration: InputDecoration(
+                              labelText: 'Référence de livraison',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Veuillez entrer la référence de l\'objet';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Veuillez entrer la référence de l\'objet';
-                            }
-                            return null;
-                          },
-                        ),
                         ],
                       ),
                     ),
@@ -368,6 +393,12 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                               setState(() {
                                 _startDateController.text = finalDateTime.toString();
                               });
+
+                              // Si la durée est déjà sélectionnée, charger les livreurs
+                              if (_selectedDuration != null) {
+                                DateTime endDate = finalDateTime.add(_selectedDuration!);
+                                _loadLivreurs(finalDateTime, endDate);
+                              }
                             }
                           }
                         },
@@ -394,14 +425,46 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                   ],
                 ),
                 SizedBox(height: 20),
+                
+                // Dropdown pour sélectionner le type de transport
+                Text(
+                  'Sélectionnez un type de transport',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _selectedTransportType ?? 'Tous', // 'Tous' par défaut
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedTransportType = newValue;
+                    });
+
+                    // Filtrer les livreurs disponibles après sélection du type de transport
+                    if (_startDateController.text.isNotEmpty && _selectedDuration != null) {
+                      DateTime startDate = DateTime.parse(_startDateController.text);
+                      DateTime endDate = startDate.add(_selectedDuration!);
+                      _loadLivreurs(startDate, endDate);
+                    }
+                  },
+                  items: transportTypes.map((String type) {
+                    return DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    );
+                  }).toList(),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                
+                SizedBox(height: 20),
                 Text(
                   'Sélectionnez un livreur',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
-                
-                isLoadingLivreurs 
-                    ? Center(child: CircularProgressIndicator())
+                isLoadingLivreurs
+                    ? Center(child: CircularProgressIndicator()) // Afficher le loader pendant le chargement
                     : Container(
                         height: 200, // Limite la hauteur pour faciliter le défilement
                         decoration: BoxDecoration(

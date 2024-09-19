@@ -56,7 +56,7 @@ class _ManagerLoginPageState extends State<LoginScreen> {
                 SizedBox(height: 20),
                 // Title
                 Text(
-                  'Manager Login',
+                  'Delivery',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

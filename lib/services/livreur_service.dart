@@ -31,19 +31,19 @@ class LivreurService {
     }
   }
 
-  Future<List<Livreur>> getLivreursDisponibles(String managerId, DateTime startDate, DateTime endDate) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-  final response = await http.get(Uri.parse(
-    '${ApiUrls.livreurs}/available?managerId=$managerId&startDate=${startDate.toIso8601String()}&endDate=${endDate.toIso8601String()}'), headers: <String, String>{'x-auth-token': '$token'});
+  static Future<List<Livreur>> getLivreursDisponibles (String managerId, DateTime startDate, DateTime endDate) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final response = await http.get(Uri.parse(
+      '${ApiUrls.livreurs}/available?managerId=$managerId&startDate=${startDate.toIso8601String()}&endDate=${endDate.toIso8601String()}'), headers: <String, String>{'x-auth-token': '$token'});
 
-  if (response.statusCode == 200) {
-    List<dynamic> livreursJson = jsonDecode(response.body);
-    return livreursJson.map((json) => Livreur.fromJson(json)).toList();
-  } else {
-    throw Exception('Échec du chargement des livreurs disponibles');
+    if (response.statusCode == 200) {
+      List<dynamic> livreursJson = jsonDecode(response.body);
+      return livreursJson.map((json) => Livreur.fromJson(json)).toList();
+    } else {
+      throw Exception('Échec du chargement des livreurs disponibles');
+    }
   }
-}
 
 
 static Future<bool> createLivreur(Livreur livreur, Uint8List? imageBytes, String? imageName) async {

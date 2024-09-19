@@ -28,7 +28,6 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
   void initState() {
     super.initState();
     _initializeManagerId();
-
     _discussionService = DiscussionService(baseUrl: ApiUrls.socketUrl);
     _loadLivreurs();
 
@@ -90,6 +89,15 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     }
   }
 
+  String _getLastMessage(Livreur livreur) {
+    // Récupérer la dernière discussion du livreur et renvoyer son dernier message
+    final discussion = _selectedDiscussion?.delivererId == livreur.id ? _selectedDiscussion : null;
+    if (discussion != null && discussion.messages.isNotEmpty) {
+      return discussion.messages.last.message;
+    }
+    return "Aucun message"; // Message par défaut si aucune discussion
+  }
+
   void _sendMessage() {
     final socketService = Provider.of<SocketService>(context, listen: false);
 
@@ -127,7 +135,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
       ),
       body: Row(
         children: [
-          // Liste des livreurs
+          // Liste des livreurs avec dernier message
           Container(
             width: 250,
             color: Colors.grey[200],
@@ -139,8 +147,16 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage('https://via.placeholder.com/150'),
                   ),
-                  title: Text(livreur.name),
-                  subtitle: Text(livreur.email),
+                  title: Text(
+                    livreur.name,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    _getLastMessage(livreur),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
                   onTap: () => _selectLivreur(livreur),
                   tileColor: _selectedLivreurId == livreur.id ? Colors.blue[50] : null,
                   shape: RoundedRectangleBorder(
@@ -183,6 +199,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                                     _livreurs.firstWhere((l) => l.id == _selectedLivreurId).name,
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                   ),
+                                  SizedBox(height: 4),
                                   Text(
                                     _livreurs.firstWhere((l) => l.id == _selectedLivreurId).email,
                                     style: TextStyle(fontSize: 16, color: Colors.grey[700]),
@@ -208,7 +225,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                                       child: Container(
                                         padding: EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: isSentByMe ? Colors.blueAccent : Colors.grey,
+                                          color: isSentByMe ? Colors.blueAccent : Colors.grey[400],
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Text(
