@@ -103,6 +103,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     key: _formKey,
                     child: Column(
                       children: [
+                          Text(
+                      'Informations personnelles',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                           SizedBox(height: 20),
                         CustomTextFieldRegister(
                           controller: _emailController,
                           label: 'Email',
@@ -133,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: 20),
                         CustomTextFieldRegister(
                           controller: _passwordController,
-                          label: 'Password',
+                          label: 'Mot de passe',
                           obscureText: true,
                           icon: Icons.lock,
                           validator: (value) {
@@ -170,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: 20),
                         CustomTextFieldRegister(
                           controller: _addressController,
-                          label: 'Address',
+                          label: 'Addresse',
                           icon: Icons.home,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -207,7 +212,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Info du département',
+                      'Informations du département',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 20),

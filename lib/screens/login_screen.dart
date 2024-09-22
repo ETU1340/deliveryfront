@@ -86,20 +86,7 @@ class _ManagerLoginPageState extends State<LoginScreen> {
                         text: 'Login',
                         onPressed: _login,
                       ),
-                      SizedBox(height: 20),
-                      // Forgot password option
-                      TextButton(
-                        onPressed: () {
-                          // Handle forgot password
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Colors.blue[800], // Slightly lighter blue
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
+ 
                       SizedBox(height: 20),
                       // Register option
                       TextButton(
@@ -111,7 +98,7 @@ class _ManagerLoginPageState extends State<LoginScreen> {
                           );
                         },
                         child: Text(
-                          'Don\'t have an account? Register',
+                          'Vous n\'avez pas de compte ? Inscrivez-vous',
                           style: TextStyle(
                             color: Colors.blue[800],
                             decoration: TextDecoration.underline,
