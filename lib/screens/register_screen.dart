@@ -220,7 +220,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       width: 300,
                       child: CustomTextFieldRegister(
                         controller: _companyNameController,
-                        label: 'Nom de l\'entreprise',
+                        label: 'Nom du département',
                         icon: Icons.business,
                         validator: (value) {
                           if (value == null || value.isEmpty) {

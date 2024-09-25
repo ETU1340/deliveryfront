@@ -84,15 +84,15 @@ class _LivreurMapState extends State<LivreurMap> {
   Icon _getTransportIcon(String moyenDeTransport) {
     switch (moyenDeTransport) {
       case 'Vélo':
-        return Icon(Icons.pedal_bike, color: Colors.blue, size: 25);
+        return Icon(Icons.pedal_bike, color: Colors.blue, size: 20);
       case 'Moto':
-        return Icon(Icons.delivery_dining, color: Colors.blue, size: 25);
+        return Icon(Icons.delivery_dining, color: Colors.blue, size: 20);
       case 'Voiture':
-        return Icon(Icons.directions_car, color: Colors.blue, size: 25);
+        return Icon(Icons.directions_car, color: Colors.blue, size: 20);
       case 'Camion':
-        return Icon(Icons.local_shipping, color: Colors.blue, size: 25);
+        return Icon(Icons.local_shipping, color: Colors.blue, size: 20);
       default:
-        return Icon(Icons.person, color: Colors.blue, size: 25);
+        return Icon(Icons.person, color: Colors.blue, size: 20);
     }
   }
 
@@ -148,10 +148,10 @@ class _LivreurMapState extends State<LivreurMap> {
                   delivery.deliveryAddress.longitude,
                 ),
                 builder: (ctx) =>
-                    Icon(Icons.person_pin_circle, color: Colors.red, size: 25),
+                    Icon(Icons.person_pin_circle, color: Colors.green, size: 25),
               ));
             },
-            child: Icon(Icons.person_pin_circle, color: Colors.red, size: 25),
+            child: Icon(Icons.person_pin_circle, color: Colors.green, size: 25),
           ),
         );
       }).toList());
@@ -404,9 +404,9 @@ class _LivreurMapState extends State<LivreurMap> {
                   ),
                   Row(
                     children: [
-                      Icon(Icons.person_pin_circle, color: Colors.red),
+                      Icon(Icons.person_pin_circle, color: Colors.green),
                       SizedBox(width: 5),
-                      Text('Point de livraison', style: TextStyle(color: Colors.red)),
+                      Text('Point de livraison', style: TextStyle(color: Colors.green)),
                     ],
                   ),
                 ],
