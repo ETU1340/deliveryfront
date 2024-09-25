@@ -27,7 +27,7 @@ class SocketService extends ChangeNotifier {
   }
 
 
-  void sendMessage(String senderId, String receiverId, String message, String roomId, String role) {
+  void sendMessage(String senderId, String receiverId, String message, String roomId, String role, String senderName) {
     final messageData = {
       'senderId': senderId,
       'roleSender': role,
@@ -35,6 +35,7 @@ class SocketService extends ChangeNotifier {
       'message': message,
       'timestamp': DateTime.now().toIso8601String(),
       'roomId': roomId,
+      'senderName':senderName
     };
     print(messageData);
     socket.emit('sendMessage', messageData);

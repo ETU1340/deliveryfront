@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../services/livreur_service.dart';
 import '../../services/manager_service.dart';
 import '../utils/api_urls.dart';
+import 'dart:js' as js;
 
 class ManagerChatScreen extends StatefulWidget {
   @override
@@ -22,6 +23,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
   Discussion? _selectedDiscussion;
   String? _selectedLivreurId;
   String managerId = "";
+  String managerName = "";
   final DateFormat _timeFormat = DateFormat('HH:mm'); // Format d'heure
 
   @override
@@ -34,6 +36,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     // Écoute les messages reçus en temps réel
     final socketService = Provider.of<SocketService>(context, listen: false);
     socketService.onMessageReceived((messageData) {
+      print(messageData);
       if (_selectedDiscussion != null && messageData['senderId'] == _selectedDiscussion!.delivererId) {
         setState(() {
           _selectedDiscussion!.messages.add(
@@ -45,14 +48,48 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
           );
         });
       }
+ // Récupérer le nom de l'expéditeur (supposons que ce soit dans messageData['senderName'])
+  String senderName = messageData['senderName'] ?? 'Manager';  // Utiliser un nom par défaut si non disponible
+
+  // Afficher la notification avec le nom de l'expéditeur
+  showWebNotification("$senderName vous a envoyé un message", messageData['message']);
     });
   }
+
+
+void requestNotificationPermission() {
+  js.context.callMethod('eval', [
+    """
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission().then(function(permission) {
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+        } else {
+          console.log('Notification permission denied.');
+        }
+      });
+    }
+    """
+  ]);
+}
+void showWebNotification(String title, String body) {
+  js.context.callMethod('eval', [
+    """
+    new Notification("$title", {
+      body: "$body",
+      icon: 'https://flutter.dev/images/favicon.png' // Optional: URL of an icon
+    });
+    """
+  ]);
+}
+
 
   Future<void> _initializeManagerId() async {
     Manager? manager = await ManagerService.getManagerSession();
     final socketService = Provider.of<SocketService>(context, listen: false);
     socketService.joinRoom(manager!.id);
     setState(() {
+      managerName = manager.name;
       managerId = manager.id;
     });
   }
@@ -108,6 +145,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
         _controller.text,
         _selectedDiscussion!.delivererId,
         'manager',
+        managerName
       );
 
       setState(() {
@@ -145,7 +183,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                 final livreur = _livreurs[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                    backgroundImage: NetworkImage('http://delivery.psad.hco.mg/uploads/other/default_man.png'),
                   ),
                   title: Text(
                     livreur.name,
@@ -189,7 +227,7 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+                                backgroundImage: NetworkImage('http://delivery.psad.hco.mg/uploads/other/default_man.png'),
                               ),
                               SizedBox(width: 16),
                               Column(
