@@ -49,7 +49,7 @@ class _LivreurMapState extends State<LivreurMap> {
   }
 
   void _startLocationUpdates() {
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) async {
+    _timer = Timer.periodic(Duration(seconds: 3), (timer) async {
       await _loadLivreurs();
     });
   }
