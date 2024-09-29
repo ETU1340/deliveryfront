@@ -183,7 +183,7 @@ void showWebNotification(String title, String body) {
                 final livreur = _livreurs[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: NetworkImage('http://delivery.psad.hco.mg/uploads/other/default_man.png'),
+                     backgroundImage: AssetImage('icon.png'),
                   ),
                   title: Text(
                     livreur.name,
@@ -227,7 +227,7 @@ void showWebNotification(String title, String body) {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                backgroundImage: NetworkImage('http://delivery.psad.hco.mg/uploads/other/default_man.png'),
+                                 backgroundImage: AssetImage('icon.png'),
                               ),
                               SizedBox(width: 16),
                               Column(
