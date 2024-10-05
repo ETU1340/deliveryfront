@@ -129,7 +129,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
         clientSurname: _clientSurnameController.text,
         clientEmail: _clientEmailController.text,
         validationCode: _validationCodeController.text,
-        reference: _referenceController.text,
+        reference: 'LIV - '+_referenceController.text,
         deliveryAddress: Location(
           latitude: _selectedLocation?.latitude ?? 0.0,
           longitude: _selectedLocation?.longitude ?? 0.0,

@@ -31,7 +31,7 @@ class LivreurDetailsModal extends StatelessWidget {
                           CircleAvatar(
                             radius: 50,
                             backgroundImage:
-                                NetworkImage(livreur.image ?? 'https://via.placeholder.com/150'),
+                                AssetImage('icon.png'),
                           ),
                           SizedBox(height: 16),
                           Text(

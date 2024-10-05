@@ -15,6 +15,7 @@ class ApiUrls {
   static const String chats = '$baseUrl/chats';
 
   static const String deliveries = '$baseUrl/deliveries';
+  static const String deliveriesNow = '$baseUrl/deliveries/now';
 
   // Client URLs
   static const String getClients = '$baseUrl/clients';

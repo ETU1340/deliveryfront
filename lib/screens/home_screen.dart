@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     _buildMenuButton('Livreurs', 0),
-                    _buildMenuButton('Visualisation', 1),
+                    _buildMenuButton('Visualisation & Suivi', 1),
                     _buildMenuButton('Livraisons', 2),
                     _buildMenuButton('Planification', 3),
                     _buildMenuButton('Discussion', 4),

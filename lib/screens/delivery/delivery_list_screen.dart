@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/delivery.dart';
 import '../../services/delivery_service.dart';
-import '../../models/livreur.dart';
+import 'package:intl/intl.dart';
 
 class DeliveryListScreen extends StatefulWidget {
   @override
@@ -16,22 +17,43 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
   String? _selectedStatus;
   DateTime? _selectedDate;
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _loadDeliveries();
+    // Actualiser la liste toutes les 5 secondes
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      _reloadDeliveries();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Arrêter le Timer pour éviter les fuites de mémoire
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadDeliveries() async {
     try {
       _deliveries = await DeliveryService.getDeliveries();
-      setState(() {
-        _filteredDeliveries = _deliveries;
-      });
+      _filterDeliveries();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec du chargement des livraisons')),
+      );
+    }
+  }
+
+  void _reloadDeliveries() async {
+    try {
+      _deliveries = await DeliveryService.getDeliveries();
+      _filterDeliveries(); // Appliquer les filtres après avoir chargé les nouvelles données
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du rechargement des livraisons')),
       );
     }
   }
@@ -41,26 +63,12 @@ class _DeliveryListScreenState extends State<DeliveryListScreen> {
       _filteredDeliveries = _deliveries.where((delivery) {
         bool matchesSearchQuery = delivery.clientName.toLowerCase().contains(_searchQuery.toLowerCase());
         bool matchesStatus = _selectedStatus == null || delivery.status == _selectedStatus;
-        bool matchesDate = _selectedDate == null || 
+        bool matchesDate = _selectedDate == null ||
             delivery.deliveryDateTime.toString().substring(0, 10) == _selectedDate.toString().substring(0, 10);
         return matchesSearchQuery && matchesStatus && matchesDate;
       }).toList();
     });
   }
-
-  void _reloadDeliveries() async {
-    try {
-      _deliveries = await DeliveryService.getDeliveries();
-      setState(() {
-        _filteredDeliveries = _deliveries;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors du rechargement des livraisons')),
-      );
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -193,16 +201,15 @@ class _DeliveryDataSource extends DataTableSource {
     final delivery = deliveries[index];
     Color rowColor;
 
-    // Attribuer des couleurs en fonction du statut de la livraison
     switch (delivery.status) {
       case 'En attente':
-        rowColor = Colors.orange.withOpacity(0.2);
+        rowColor = Colors.orange.withOpacity(0.3);
         break;
       case 'En cours':
         rowColor = Colors.blue.withOpacity(0.2);
         break;
       case 'Terminé':
-        rowColor = Colors.green.withOpacity(0.2);
+        rowColor = Colors.green.withOpacity(0.3);
         break;
       case 'Annulé':
         rowColor = Colors.red.withOpacity(0.2);
@@ -216,19 +223,17 @@ class _DeliveryDataSource extends DataTableSource {
       color: MaterialStateProperty.all(rowColor),
       cells: [
         DataCell(Text(delivery.clientName)),
-        DataCell(Text('${delivery.deliveryDateTime} à ${delivery.deliveryEndDateTime}')),
+        DataCell(Text('${DateFormat('yyyy-MM-dd HH:mm').format(delivery.deliveryDateTime.toLocal())}')),
         DataCell(Text(delivery.status)),
         DataCell(Text(delivery.livreur != null ? delivery.livreur!.name : 'Non assigné')),
         DataCell(Row(
           children: [
-            // Détails de la livraison dans un modal
             IconButton(
               icon: Icon(Icons.info, color: Colors.green),
               onPressed: () {
                 _showDeliveryDetailsModal(context, delivery);
               },
             ),
-            // Validation de la livraison
             if (delivery.status == 'En cours')
               IconButton(
                 icon: Icon(Icons.check_circle, color: Colors.blue),
@@ -236,7 +241,6 @@ class _DeliveryDataSource extends DataTableSource {
                   _validateDelivery(context, delivery, index);
                 },
               ),
-            // Annuler la livraison si elle n'est ni en cours ni terminée
             if (delivery.status == 'En attente')
               IconButton(
                 icon: Icon(Icons.cancel, color: Colors.red),
@@ -273,8 +277,8 @@ class _DeliveryDataSource extends DataTableSource {
                 _buildDetailRow('Téléphone du client', delivery.clientSurname),
                 _buildDetailRow('Email du client', delivery.clientEmail),
                 _buildDetailRow('Adresse de livraison', '${delivery.deliveryAddress.latitude}, ${delivery.deliveryAddress.longitude}'),
-                _buildDetailRow('Date de début', delivery.deliveryDateTime.toString()),
-                _buildDetailRow('Date de fin', delivery.deliveryEndDateTime.toString()),
+                _buildDetailRow('Date de début',  DateFormat('yyyy-MM-dd HH:mm').format(delivery.deliveryDateTime.toLocal())),
+                _buildDetailRow('Date de fin', DateFormat('yyyy-MM-dd HH:mm').format(delivery.deliveryEndDateTime.toLocal())),
                 _buildDetailRow('Statut', delivery.status),
                 if (delivery.livreur != null)
                   _buildDetailRow('Livreur assigné', delivery.livreur!.name),
@@ -453,4 +457,5 @@ class _DeliveryDataSource extends DataTableSource {
 
   @override
   int get selectedRowCount => 0;
+
 }

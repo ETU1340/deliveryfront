@@ -69,7 +69,7 @@ class _LivreurMapState extends State<LivreurMap> {
 
   Future<void> _loadDeliveries() async {
     try {
-      final deliveries = await DeliveryService.getDeliveries();
+      final deliveries = await DeliveryService.getDeliveriesNow();
       setState(() {
         _deliveries = deliveries;
       });

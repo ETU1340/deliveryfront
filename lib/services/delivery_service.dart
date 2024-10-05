@@ -44,6 +44,30 @@ static Future<List<Delivery>> getDeliveries() async {
   }
 }
 
+static Future<List<Delivery>> getDeliveriesNow() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+
+  try {
+    final response = await http.get(
+      Uri.parse(ApiUrls.deliveriesNow),
+      headers: {'x-auth-token': '$token'},
+    );
+
+    if (response.statusCode == 200) {
+        print(response.body);
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((delivery) => Delivery.fromJson(delivery)).toList();
+    } else {
+      print('Failed to load deliveries with status code: ${response.statusCode}');
+      throw Exception('Failed to load deliveries with status code: ${response.statusCode}');
+    }
+  } catch (error) {
+    print('delivery error: $error');
+    throw Exception('An error occurred while fetching deliveries: $error');
+  }
+}
+
 
 
   static Future<bool> updateDelivery(Delivery delivery) async {
