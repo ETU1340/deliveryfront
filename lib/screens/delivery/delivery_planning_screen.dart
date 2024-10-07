@@ -129,7 +129,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
         clientSurname: _clientSurnameController.text,
         clientEmail: _clientEmailController.text,
         validationCode: _validationCodeController.text,
-        reference: 'LIV - '+_referenceController.text,
+        reference: _referenceController.text,
         deliveryAddress: Location(
           latitude: _selectedLocation?.latitude ?? 0.0,
           longitude: _selectedLocation?.longitude ?? 0.0,
@@ -290,7 +290,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                           TextFormField(
                             controller: _addressController,
                             decoration: InputDecoration(
-                              labelText: 'Adresse de livraison',
+                              labelText: 'Coordonnée de livraison',
                               border: OutlineInputBorder(),
                               suffixIcon: IconButton(
                                 icon: Icon(Icons.map),
@@ -342,7 +342,7 @@ class _DeliveryPlanningScreenState extends State<DeliveryPlanningScreen> {
                           TextFormField(
                             controller: _referenceController,
                             decoration: InputDecoration(
-                              labelText: 'Référence de livraison',
+                              labelText: 'Adresse de livraison',
                               border: OutlineInputBorder(),
                             ),
                             validator: (value) {

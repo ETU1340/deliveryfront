@@ -18,14 +18,21 @@ class ManagerChatScreen extends StatefulWidget {
 
 class _ManagerChatScreenState extends State<ManagerChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   late DiscussionService _discussionService;
   List<Livreur> _livreurs = [];
+  List<Livreur> _filteredLivreurs = [];
   Discussion? _selectedDiscussion;
   String? _selectedLivreurId;
   String managerId = "";
   String managerName = "";
   final DateFormat _timeFormat = DateFormat('HH:mm'); // Format d'heure
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadLivreurs();
+  }
   @override
   void initState() {
     super.initState();
@@ -36,7 +43,6 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     // Écoute les messages reçus en temps réel
     final socketService = Provider.of<SocketService>(context, listen: false);
     socketService.onMessageReceived((messageData) {
-      print(messageData);
       if (_selectedDiscussion != null && messageData['senderId'] == _selectedDiscussion!.delivererId) {
         setState(() {
           _selectedDiscussion!.messages.add(
@@ -48,31 +54,14 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
           );
         });
       }
- // Récupérer le nom de l'expéditeur (supposons que ce soit dans messageData['senderName'])
-  String senderName = messageData['senderName'] ?? 'Manager';  // Utiliser un nom par défaut si non disponible
-
-  // Afficher la notification avec le nom de l'expéditeur
-  showWebNotification("$senderName vous a envoyé un message", messageData['message']);
+      String senderName = messageData['senderName'] ?? 'Manager';
+      showWebNotification("$senderName vous a envoyé un message", messageData['message']);
     });
+
+    // Écoute les changements de texte dans la barre de recherche
+    _searchController.addListener(_filterLivreurs);
   }
-
-
-void requestNotificationPermission() {
-  js.context.callMethod('eval', [
-    """
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission().then(function(permission) {
-        if (permission === 'granted') {
-          console.log('Notification permission granted.');
-        } else {
-          console.log('Notification permission denied.');
-        }
-      });
-    }
-    """
-  ]);
-}
-void showWebNotification(String title, String body) {
+  void showWebNotification(String title, String body) {
   js.context.callMethod('eval', [
     """
     new Notification("$title", {
@@ -82,6 +71,7 @@ void showWebNotification(String title, String body) {
     """
   ]);
 }
+
 
 
   Future<void> _initializeManagerId() async {
@@ -98,11 +88,21 @@ void showWebNotification(String title, String body) {
     final livreurs = await LivreurService.getLivreurs();
     setState(() {
       _livreurs = livreurs;
+      _filteredLivreurs = livreurs;
     });
 
-    if (_livreurs.isNotEmpty) {
-      _selectLivreur(_livreurs[0]);
+    if (_filteredLivreurs.isNotEmpty) {
+      _selectLivreur(_filteredLivreurs[0]);
     }
+  }
+
+  void _filterLivreurs() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredLivreurs = _livreurs.where((livreur) {
+        return livreur.userName.toLowerCase().contains(query);
+      }).toList();
+    });
   }
 
   void _selectLivreur(Livreur livreur) async {
@@ -126,13 +126,14 @@ void showWebNotification(String title, String body) {
     }
   }
 
+
+
   String _getLastMessage(Livreur livreur) {
-    // Récupérer la dernière discussion du livreur et renvoyer son dernier message
     final discussion = _selectedDiscussion?.delivererId == livreur.id ? _selectedDiscussion : null;
     if (discussion != null && discussion.messages.isNotEmpty) {
       return discussion.messages.last.message;
     }
-    return "Aucun message"; // Message par défaut si aucune discussion
+    return "Aucun message";
   }
 
   void _sendMessage() {
@@ -173,39 +174,55 @@ void showWebNotification(String title, String body) {
       ),
       body: Row(
         children: [
-          // Liste des livreurs avec dernier message
+          // Liste des livreurs avec barre de recherche
           Container(
             width: 250,
             color: Colors.grey[200],
-            child: ListView.builder(
-              itemCount: _livreurs.length,
-              itemBuilder: (context, index) {
-                final livreur = _livreurs[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                     backgroundImage: AssetImage('icon.png'),
-                  ),
-                  title: Text(
-                    livreur.name,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    _getLastMessage(livreur),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  onTap: () => _selectLivreur(livreur),
-                  tileColor: _selectedLivreurId == livreur.id ? Colors.blue[50] : null,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: _selectedLivreurId == livreur.id ? Colors.blue : Colors.grey,
-                      width: 1,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher par nom...',
+                      border: OutlineInputBorder(),
                     ),
                   ),
-                );
-              },
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _filteredLivreurs.length,
+                    itemBuilder: (context, index) {
+                      final livreur = _filteredLivreurs[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: AssetImage('icon.png'),
+                        ),
+                        title: Text(
+                          livreur.name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          _getLastMessage(livreur),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        onTap: () => _selectLivreur(livreur),
+                        tileColor: _selectedLivreurId == livreur.id ? Colors.blue[50] : null,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: _selectedLivreurId == livreur.id ? Colors.blue : Colors.grey,
+                            width: 1,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           // Discussion
@@ -227,7 +244,7 @@ void showWebNotification(String title, String body) {
                             children: [
                               CircleAvatar(
                                 radius: 30,
-                                 backgroundImage: AssetImage('icon.png'),
+                                backgroundImage: AssetImage('icon.png'),
                               ),
                               SizedBox(width: 16),
                               Column(

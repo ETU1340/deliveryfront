@@ -1,6 +1,6 @@
 class ApiUrls {
-  //static const String baseUrl = 'http://localhost:7000/api';
-  static const String baseUrl = 'https://delivery.psad.hco.mg/api';
+  static const String baseUrl = 'http://localhost:7000/api';
+  //static const String baseUrl = 'https://delivery.psad.hco.mg/api';
   // Auth URLs
   static const String register = '$baseUrl/auth/register';
   static const String login = '$baseUrl/auth/login';
