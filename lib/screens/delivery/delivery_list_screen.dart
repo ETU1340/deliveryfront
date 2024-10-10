@@ -276,7 +276,7 @@ class _DeliveryDataSource extends DataTableSource {
                 _buildDetailRow('Nom du client', delivery.clientName),
                 _buildDetailRow('Téléphone du client', delivery.clientSurname),
                 _buildDetailRow('Email du client', delivery.clientEmail),
-                _buildDetailRow('Adresse de livraison', '${delivery.deliveryAddress.latitude}, ${delivery.deliveryAddress.longitude}'),
+                _buildDetailRow('Adresse de livraison', '${delivery.reference}'),
                 _buildDetailRow('Date de début',  DateFormat('yyyy-MM-dd HH:mm').format(delivery.deliveryDateTime.toLocal())),
                 _buildDetailRow('Date de fin', DateFormat('yyyy-MM-dd HH:mm').format(delivery.deliveryEndDateTime.toLocal())),
                 _buildDetailRow('Statut', delivery.status),
